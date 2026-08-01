@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "formisch": {
+      "source": "open-circle/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/formisch/SKILL.md",
+      "computedHash": "24d27a0c7a09bd4dc71826882e24fd5953029fb9d9b660199219c285505d8513"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "484bbc161054398ee3e0d292daf7648bc39e6300dd939697b394f273d56c8a62"
+    },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "f99ef49d9909d380ca683ceb8dc8c25775c20ee38140112c394e037d8c11ee18"
+    },
+    "valibot": {
+      "source": "open-circle/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/valibot/SKILL.md",
+      "computedHash": "31d519d234d3af2cb44fb777f613abf9c187959791af172221af7d0b7af6e892"
+    }
+  }
+}
