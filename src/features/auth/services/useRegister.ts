@@ -6,6 +6,9 @@ import type { RegisterRequest } from "../types";
 
 /**
  * Register — gọi qua BFF, BFF set httpOnly cookie.
+ *
+ * Dữ liệu camelCase được bffAxios request interceptor tự động
+ * convert sang snake_case trước khi gửi.
  */
 export function useRegister() {
   return useMutation({

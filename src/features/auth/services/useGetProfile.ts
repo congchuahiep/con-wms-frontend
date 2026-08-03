@@ -10,6 +10,9 @@ import { authKeys } from "./key";
  *
  * Gọi qua proxy /api/proxy/* . Trình duyệt tự gửi httpOnly cookie, proxy
  * route handler sẽ attach vào Authorization header và forward tới backend.
+ *
+ * Response snake_case từ backend được authAxios response interceptor
+ * tự động convert sang camelCase.
  */
 export function useGetProfile() {
   return useQuery({

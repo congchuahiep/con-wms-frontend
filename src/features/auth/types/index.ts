@@ -7,7 +7,7 @@ export interface TokenPair {
 }
 
 /**
- * Response từ POST `/api/auth/register/``
+ * Response từ POST `/api/auth/register/`
  */
 export interface RegisterResponse {
   user: UserProfile;
@@ -21,8 +21,8 @@ export interface RegisterResponse {
 export interface UserProfile {
   id: number;
   email: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   phone: string;
   role: string;
 }
@@ -41,8 +41,8 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
 }
 
 /**
