@@ -3,6 +3,7 @@ import * as v from "valibot";
 const EnvSchema = v.object({
   API_URL: v.string(),
   APP_URL: v.optional(v.string(), "http://localhost:3000"),
+  GOOGLE_MAP_API: v.string(),
 });
 
 /**
@@ -15,6 +16,7 @@ const createEnv = () => {
   const rawEnvVars = {
     API_URL: process.env.NEXT_PUBLIC_API_URL,
     APP_URL: process.env.NEXT_PUBLIC_URL,
+    GOOGLE_MAP_API: process.env.NEXT_PUBLIC_GOOGLE_MAP_API,
   };
 
   // Hàm safeParse của Valibot nhận Schema là tham số đầu tiên
