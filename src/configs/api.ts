@@ -1,6 +1,6 @@
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import axios from "axios";
-import { handleAxiosError } from "@/utils/handlerAxiosError";
+import { classifyError } from "@/utils/classify-error";
 import { authEndpoints, bffEndpoints, internalEndpoints } from "./endpoints";
 import { env } from "./env";
 
@@ -62,7 +62,7 @@ for (const instance of [bffAxios, authAxios, internalAxios]) {
   instance.interceptors.response.use(
     (response) => response,
     (error) => {
-      throw handleAxiosError(error);
+      throw classifyError(error);
     },
   );
 }

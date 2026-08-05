@@ -6,7 +6,7 @@ import { authKeys } from "@/configs/querykeys";
 import type { AppError } from "@/errors";
 import type { RegisterRequest, UserProfile } from "./types";
 
-export function useGetProfile() {
+export function useGetUserProfile() {
   return useQuery({
     queryKey: authKeys.profile(),
     queryFn: async () => {

@@ -5,7 +5,7 @@ import { internalApi } from "@/configs/api";
 import { cookieConfig, cookieNames } from "@/configs/cookie";
 import type { LoginSchema } from "@/features/auth/schemas";
 import type { TokenPair } from "@/features/auth/types";
-import { handleAxiosError } from "@/utils/handlerAxiosError";
+import { classifyError } from "@/utils/classify-error";
 
 /**
  * BFF POST /api/auth/login
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   return ResultAsync.fromPromise(
     internalApi.post<TokenPair>((ep) => ep.auth.login, data),
-    handleAxiosError,
+    classifyError,
   ).match(
     (response) => {
       const { access, refresh } = response.data;

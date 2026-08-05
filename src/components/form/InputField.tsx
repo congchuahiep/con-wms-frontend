@@ -1,0 +1,137 @@
+"use client";
+
+import {
+  Field as FormField,
+  type FormSchema,
+  type FormStore,
+  type PartialValues,
+  type PathValue,
+  type RequiredPath,
+  type ValidPath,
+} from "@formisch/react";
+import type * as React from "react";
+import type * as v from "valibot";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+
+type InputFieldProps<
+  TSchema extends FormSchema = FormSchema,
+  TFieldPath extends RequiredPath = RequiredPath,
+> = {
+  /**
+   * Form store từ useForm.
+   */
+  of: FormStore<TSchema>;
+  /**
+   * Path đến field trong schema.
+   */
+  path: ValidPath<v.InferInput<TSchema>, TFieldPath>;
+  /**
+   * Label hiển thị.
+   */
+  label?: string;
+  /**
+   * Mô tả phụ dưới input.
+   */
+  description?: string;
+  /**
+   * Placeholder khi chưa nhập.
+   */
+  placeholder?: string;
+  /**
+   * Vô hiệu hóa input.
+   */
+  disabled?: boolean;
+  /**
+   * Hiển thị dấu * khi field bắt buộc.
+   */
+  required?: boolean;
+  /**
+   * Class name cho Field wrapper.
+   */
+  className?: string;
+  /**
+   * Class name cho Input.
+   */
+  inputClassName?: string;
+  /**
+   * Hàm biến đổi giá trị string từ input sang giá trị schema.
+   * Ví dụ: chuyển string sang number hoặc null cho field number.
+   */
+  transform?: (value: string) => PathValue<v.InferInput<TSchema>, TFieldPath>;
+} & Omit<
+  React.ComponentProps<typeof Input>,
+  "name" | "value" | "onChange" | "ref"
+>;
+
+export function InputField<
+  TSchema extends FormSchema = FormSchema,
+  TFieldPath extends RequiredPath = RequiredPath,
+>({
+  of,
+  path,
+  label,
+  description,
+  placeholder,
+  disabled,
+  className,
+  inputClassName,
+  required,
+  transform,
+  ...inputProps
+}: InputFieldProps<TSchema, TFieldPath>) {
+  return (
+    <FormField of={of} path={path}>
+      {(field) => (
+        <Field
+          data-invalid={field.errors ? true : undefined}
+          className={className}
+        >
+          {label && (
+            <FieldLabel htmlFor={field.props.name}>
+              {label} {required && <span className="text-red-500">*</span>}
+            </FieldLabel>
+          )}
+          <Input
+            {...field.props}
+            {...inputProps}
+            id={field.props.name}
+            value={
+              (field.input ?? "") as
+                | string
+                | number
+                | readonly string[]
+                | undefined
+            }
+            onChange={(e) => {
+              const next = transform
+                ? transform(e.target.value)
+                : (e.target.value as PathValue<
+                    v.InferInput<TSchema>,
+                    TFieldPath
+                  >);
+              field.onChange(
+                next as PartialValues<
+                  PathValue<v.InferInput<TSchema>, TFieldPath>
+                >,
+              );
+            }}
+            placeholder={placeholder}
+            disabled={disabled}
+            aria-invalid={field.errors ? true : undefined}
+            className={inputClassName}
+          />
+          {description && <FieldDescription>{description}</FieldDescription>}
+          {field.errors && (
+            <FieldError errors={field.errors.map((message) => ({ message }))} />
+          )}
+        </Field>
+      )}
+    </FormField>
+  );
+}

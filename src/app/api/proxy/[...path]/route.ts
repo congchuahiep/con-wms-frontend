@@ -5,7 +5,7 @@ import { cookieConfig, cookieNames } from "@/configs/cookie";
 import { env } from "@/configs/env";
 import type { AppError } from "@/errors";
 import { getValidToken } from "@/features/auth/server";
-import { handleAxiosError } from "@/utils/handlerAxiosError";
+import { classifyError } from "@/utils/classify-error";
 
 /**
  * Proxy ALL — forward mọi HTTP method từ client tới backend Django.
@@ -68,7 +68,7 @@ export async function ALL(
         ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
       },
     }),
-    handleAxiosError,
+    classifyError,
   ).match(
     (response) => {
       const contentType =

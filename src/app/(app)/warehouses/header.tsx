@@ -1,18 +1,14 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
 import Building02Icon from "@hugeicons/core-free-icons/Building02Icon";
 import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
 import Upload01Icon from "@hugeicons/core-free-icons/Upload01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
-import type { Warehouse } from "@/lib/mock/data";
+import { useGetUserProfile } from "@/features/auth";
 import { cn } from "@/lib/utils";
+import { WarehouseCreateDialog } from "./create-dialog";
 
-export default function WarehouseHeader({
-  warehouses,
-}: {
-  warehouses: Warehouse[];
-}) {
-  const totalItems = warehouses.reduce((sum, wh) => sum + wh.itemCount, 0);
+export default function WarehouseHeader() {
+  const userProfile = useGetUserProfile();
 
   return (
     <header
@@ -36,9 +32,6 @@ export default function WarehouseHeader({
         </div>
 
         <h1 className="font-semibold tracking-tight">Quản lý kho</h1>
-        <p className="text-sm text-muted-foreground">
-          {warehouses.length} nhà kho &middot; {totalItems} mặt hàng đang lưu
-        </p>
       </div>
       <div className="flex items-center gap-2">
         <Button variant="outline" size="sm" disabled>
@@ -57,14 +50,7 @@ export default function WarehouseHeader({
           />
           Nhập kho
         </Button>
-        <Button size="sm" disabled>
-          <HugeiconsIcon
-            icon={Add01Icon}
-            strokeWidth={2}
-            data-icon="inline-start"
-          />
-          Thêm kho
-        </Button>
+        {userProfile.data?.role === "admin" && <WarehouseCreateDialog />}
       </div>
     </header>
   );

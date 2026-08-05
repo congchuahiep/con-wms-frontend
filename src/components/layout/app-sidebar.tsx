@@ -29,7 +29,7 @@ import {
   SidebarMenuSubItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { useGetProfile, useLogout } from "@/features/auth";
+import { useGetUserProfile, useLogout } from "@/features/auth";
 import { warehouses } from "@/lib/mock/data";
 
 const navItems = [
@@ -42,7 +42,7 @@ const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { data: profile } = useGetProfile();
+  const { data: profile } = useGetUserProfile();
   const logout = useLogout();
 
   const isWarehouseActive = pathname.startsWith("/warehouses");

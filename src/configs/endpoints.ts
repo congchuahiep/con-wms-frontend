@@ -31,6 +31,7 @@ export const authEndpoints = {
   },
   warehouses: {
     list: "/warehouses/",
+    create: "/warehouses/",
   },
 } as const;
 

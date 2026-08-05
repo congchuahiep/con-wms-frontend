@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { internalApi } from "@/configs/api";
 import { cookieNames } from "@/configs/cookie";
-import { handleAxiosError } from "@/utils/handlerAxiosError";
+import { classifyError } from "@/utils/classify-error";
 
 /**
  * BFF POST /api/auth/logout
@@ -19,7 +19,7 @@ export async function POST(_request: NextRequest): Promise<NextResponse> {
   if (refresh) {
     await ResultAsync.fromPromise(
       internalApi.post((ep) => ep.auth.logout, { refresh }),
-      handleAxiosError,
+      classifyError,
     ).match(
       () => undefined,
       (error) => {
