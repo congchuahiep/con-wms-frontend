@@ -2,12 +2,13 @@
 
 import {
   Archive01Icon,
-  ArrowDown01Icon,
   Building02Icon,
   Chart01Icon,
   Home01Icon,
   Logout01Icon,
   Package01Icon,
+  TagsIcon,
+  WeightIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
@@ -22,6 +23,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -33,11 +35,28 @@ import { useGetUserProfile, useLogout } from "@/features/auth";
 import { warehouses } from "@/lib/mock/data";
 
 const navItems = [
-  { title: "Tổng quan", url: "/", icon: Home01Icon },
-  { title: "Kho", url: "/warehouses", icon: Building02Icon, hasChildren: true },
-  { title: "Vật tư", url: "/materials", icon: Package01Icon },
-  { title: "Tồn kho", url: "/inventory", icon: Archive01Icon },
-  { title: "Báo cáo", url: "/reports", icon: Chart01Icon },
+  {
+    name: "Nghiệp vụ",
+    items: [
+      { title: "Tổng quan", url: "/", icon: Home01Icon },
+      {
+        title: "Kho",
+        url: "/warehouses",
+        icon: Building02Icon,
+        isWarehouse: true,
+      },
+      { title: "Tồn kho", url: "/inventory", icon: Archive01Icon },
+      { title: "Báo cáo", url: "/reports", icon: Chart01Icon },
+    ],
+  },
+  {
+    name: "Danh mục",
+    items: [
+      { title: "Vật tư", url: "/materials", icon: Package01Icon },
+      { title: "Danh mục vật tư", url: "/material-categories", icon: TagsIcon },
+      { title: "Đơn vị tính", url: "/units", icon: WeightIcon },
+    ],
+  },
 ];
 
 export function AppSidebar() {
@@ -69,82 +88,68 @@ export function AppSidebar() {
 
       <SidebarSeparator />
 
-      {/* ---- Navigation ---- */}
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Điều hướng</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => {
-                const isActive =
-                  item.url === "/"
-                    ? pathname === "/"
-                    : pathname.startsWith(item.url);
+        {navItems.map((group) => (
+          <SidebarGroup key={group.name}>
+            <SidebarGroupLabel>{group.name}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => {
+                  const isActive =
+                    item.url === "/"
+                      ? pathname === "/"
+                      : pathname.startsWith(item.url);
 
-                if (item.hasChildren) {
+                  if (item.isWarehouse) {
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          render={<Link href={item.url} />}
+                          isActive={isWarehouseActive}
+                        >
+                          <HugeiconsIcon icon={item.icon} strokeWidth={2} />
+                          <span>{item.title}</span>
+                        </SidebarMenuButton>
+
+                        <SidebarMenuSub>
+                          {warehouses.map((wh) => (
+                            <SidebarMenuSubItem key={wh.id}>
+                              <SidebarMenuSubButton
+                                render={<Link href={`/warehouses/${wh.id}`} />}
+                                isActive={pathname === `/warehouses/${wh.id}`}
+                              >
+                                {wh.name}
+                              </SidebarMenuSubButton>
+                              <SidebarMenuAction>
+                                {wh.itemCount}
+                              </SidebarMenuAction>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </SidebarMenuItem>
+                    );
+                  }
+
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         render={<Link href={item.url} />}
-                        isActive={isWarehouseActive}
+                        isActive={isActive}
                       >
                         <HugeiconsIcon icon={item.icon} strokeWidth={2} />
                         <span>{item.title}</span>
-                        <HugeiconsIcon
-                          icon={ArrowDown01Icon}
-                          strokeWidth={2}
-                          className="ml-auto transition-transform group-data-[active=true]/menu-button:rotate-180"
-                        />
                       </SidebarMenuButton>
-
-                      {/* Sub-list: Warehouses */}
-                      <SidebarMenuSub>
-                        <SidebarMenuSubItem>
-                          <SidebarMenuSubButton
-                            render={<Link href="/warehouses" />}
-                            isActive={pathname === "/warehouses"}
-                          >
-                            Tất cả kho
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                        {warehouses.map((wh) => (
-                          <SidebarMenuSubItem key={wh.id}>
-                            <SidebarMenuSubButton
-                              render={<Link href={`/warehouses/${wh.id}`} />}
-                              isActive={pathname === `/warehouses/${wh.id}`}
-                            >
-                              <span className="truncate">{wh.name}</span>
-                              <span className="ml-auto text-xs text-sidebar-foreground/50 tabular-nums">
-                                {wh.itemCount}
-                              </span>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
                     </SidebarMenuItem>
                   );
-                }
-
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      render={<Link href={item.url} />}
-                      isActive={isActive}
-                    >
-                      <HugeiconsIcon icon={item.icon} strokeWidth={2} />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarSeparator />
 
-      {/* ---- User Footer ---- */}
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>

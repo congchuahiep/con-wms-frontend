@@ -64,8 +64,8 @@ export function WarehouseItem({ warehouse }: { warehouse: Warehouse }) {
           mapId={`warehouse-map-${warehouse.id}`}
           className="size-full"
           defaultCenter={{
-            lat: 10.762622,
-            lng: 106.660172,
+            lat: warehouse.latitude ?? 10.762622,
+            lng: warehouse.longitude ?? 106.660172,
           }}
           defaultZoom={15}
           gestureHandling="greedy"

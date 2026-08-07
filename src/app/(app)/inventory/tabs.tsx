@@ -15,16 +15,14 @@ interface InventoryTabsProps {
 
 export function InventoryTabs({ value, onChange }: InventoryTabsProps) {
   return (
-    <div className="shrink-0 border-b px-2 py-1">
-      <Tabs value={value} onValueChange={onChange}>
-        <TabsList variant="line">
-          {stockTabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value}>
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
-    </div>
+    <Tabs value={value} onValueChange={onChange} className="border-b">
+      <TabsList variant="line" className="h-10!">
+        {stockTabs.map((tab) => (
+          <TabsTrigger key={tab.value} value={tab.value} className="h-full">
+            {tab.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
   );
 }
