@@ -130,4 +130,7 @@
     html {
         @apply font-sans;
     }
+    code {
+        @apply font-mono text-xs py-0.5 px-1.5 bg-accent text-accent-foreground rounded-xl;
+    }
 }

@@ -7,3 +7,8 @@ export const warehouseKeys = {
   all: ["warehouse"] as const,
   list: () => [...warehouseKeys.all, "list"] as const,
 };
+
+export const categoryKeys = {
+  all: ["categories"] as const,
+  list: () => [...categoryKeys.all, "list"] as const,
+};

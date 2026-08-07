@@ -33,7 +33,7 @@ export function MaterialCategoriesHeader({
         </div>
         <h1 className="font-semibold tracking-tight">Danh mục vật tư</h1>
         <p className="text-sm text-muted-foreground">
-          {totalCategories} nhóm chính
+          {totalCategories} danh mục
         </p>
       </div>
 

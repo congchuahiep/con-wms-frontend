@@ -21,13 +21,21 @@ interface DataTableProps<TData> {
 
 export function DataTable<TData>({ table, className }: DataTableProps<TData>) {
   return (
-    <div className={cn("w-full", className)}>
-      <TableRoot>
+    <div className={cn("min-w-full", className)}>
+      <TableRoot className="w-full table-fixed">
         <TableHeader className="sticky top-0 z-10 bg-background">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
+                <TableHead
+                  key={header.id}
+                  style={{
+                    width:
+                      header.column.columnDef.size !== undefined
+                        ? header.column.columnDef.size
+                        : undefined,
+                  }}
+                >
                   {header.isPlaceholder ? null : header.column.getCanSort() ? (
                     <button
                       type="button"
