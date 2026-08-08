@@ -36,7 +36,6 @@ export function EditCategoryDialog({
 }: EditCategoryDialogProps) {
   const [open, setOpen] = useState(false);
 
-  // Mở dialog khi có category mới
   useEffect(() => {
     if (category) setOpen(true);
   }, [category]);

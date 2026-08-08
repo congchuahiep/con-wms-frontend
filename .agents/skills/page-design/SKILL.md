@@ -22,214 +22,243 @@ Skill này **yêu cầu** data layer đã được thiết kế trước (bởi 
 
 Trước khi bắt đầu, xác nhận với user:
 
-| Mục                                                              | Trạng thái |
-| ---------------------------------------------------------------- | ---------- |
-| Data layer đã có (`src/features/<name>/types.ts`, `services.ts`) | Bắt buộc   |
-| Mô tả UX từ user (page này để làm gì? ai dùng?)                  | Bắt buộc   |
-| Trang tham khảo (page có sẵn tương tự để copy layout)            | Nên có     |
-| Wireframe / sketch / mockup                                      | Tốt nếu có |
-| Design docs từ `feature-design` (`docs/features/<name>/`)        | Tốt nếu có |
+| Mục | Trạng thái |
+|---|---|
+| Data layer đã có (`src/features/<name>/types.ts`, `services.ts`) | Bắt buộc |
+| Mô tả UX từ user (page này để làm gì? ai dùng?) | Bắt buộc |
+| Trang tham khảo (page có sẵn tương tự để copy layout) | Nên có |
+| Design docs từ `feature-design` (`docs/features/<name>/`) | Tốt nếu có |
 
-## Quy trình 5 bước
+## Quy trình
 
 ### Bước 0: Xác định loại page
 
-**Trước khi thiết kế, phân loại page.** Dựa vào data + UX để chọn đúng template:
-
-| Page Type | Khi nào dùng                                              | Template           |
-| --------- | --------------------------------------------------------- | ------------------ |
-| `table`   | Danh sách dạng bảng, có cột, sort, pagination             | `templates/table/` |
-| `tree`    | Dữ liệu phân cấp (tree structure), expand/collapse        | `templates/tree/`  |
-| `form`    | Trang tạo/sửa, form là nội dung chính (không phải dialog) | `templates/form/`  |
-| `cards`   | Danh sách dạng card (grid), không hiển thị bảng           | `templates/cards/` |
-
-Nếu page kết hợp nhiều loại (vd: tree + table side by side) → chọn loại dominant, ghi chú phần phụ.
+| Page Type | Khi nào dùng | Template |
+|---|---|---|
+| `table` | Danh sách dạng bảng, cột, sort, pagination | `templates/table/` |
+| `tree` | Dữ liệu phân cấp, expand/collapse | `templates/tree/` |
+| `table-tree` | Tree hiển thị dạng table (TanStack Table `getSubRows`) | Dùng structure `table` + tree behavior |
+| `form` | Trang tạo/sửa, form là nội dung chính | `templates/form/` |
 
 ### Bước 1: Phân tích UX
 
-Dùng kiến thức nội tại (không cần gọi skill phụ) để phân tích:
-
-1. **Ai dùng page này?** → Quyết định mức độ phức tạp của UI
-2. **Người dùng cần làm gì?** → Xác định primary action, secondary action
-3. **Dữ liệu hiển thị thế nào?** → Table? Tree? Cards? Form?
-4. **Có filter/search không?** → Filter bar design
+1. **Ai dùng?** → Quyết định mức độ phức tạp
+2. **Cần làm gì?** → Primary/secondary action
+3. **Dữ liệu hiển thị thế nào?** → Table? Tree? Cards?
+4. **Có filter/search không?** → Filter bar
 5. **Có form create/edit không?** → Dialog hay inline?
-
-Nếu cần phân tích sâu hơn về UX → gọi `impeccable` skill để review visual hierarchy, cognitive load, layout.
 
 ### Bước 2: Vẽ Mockup ASCII
 
-**Đây là output quan trọng nhất.** Vẽ mockup ASCII cho toàn bộ page, theo style:
+Nguyên tắc: Unicode box-drawing, emoji/placeholder cho icon, `[text]` = primary button, `(text)` = disabled, `←` = comment.
 
-```
-┌── Header ──────────────────────────────────────────────┐
-│  [Icon] Tiêu đề                [Xuất CSV]  [+ Thêm mới] │
-│  30 mặt hàng · 4 nhóm chính                              │
-├── Filter Bar ───────────────────────────────────────────┤
-│  [Danh mục: ▼ Tất cả]              [🔍 Tìm vật tư...  ] │
-├── Content ──────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────┐│
-│  │ SKU       │ Tên          │ Danh mục  │ Đơn vị │ ... ││
-│  ├───────────┼──────────────┼───────────┼────────┼─────┤│
-│  │ XM-PC40   │ Xi măng PC40 │ Xi măng   │ Bao    │ ... ││
-│  │ THEP-D10  │ Thép D10     │ Sắt, thép │ Cây    │ ... ││
-│  │ ...       │ ...          │ ...       │ ...    │ ... ││
-│  └─────────────────────────────────────────────────────┘│
-├── Footer ───────────────────────────────────────────────┤
-│  25 / 30 dòng                          ◀ 1 / 2 ▶       │
-└─────────────────────────────────────────────────────────┘
-```
-
-**Nguyên tắc vẽ mockup:**
-
-- Dùng ký tự Unicode box-drawing: `─ │ ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼`
-- Icon bằng emoji hoặc placeholder `[Icon]`
-- Input/search: `[🔍 placeholder...]`
-- Select/dropdown: `[Label: ▼ Giá trị]`
-- Button: `[Tên nút]` (primary), `(Tên nút)` (secondary/disabled)
-- Text nhỏ/muted: chữ thường, không đậm
-- Comment bên phải bằng `←` nếu cần giải thích
-- **Luôn hiển thị ít nhất 2-3 dòng dữ liệu mẫu** trong table/tree
-- Chú thích role/permission (nếu có) dùng `← Admin only`
-
-### Bước 3: Dựng cây component + State Flow
-
-Sau khi có mockup, dựng cây component và bảng state flow (dùng template tương ứng với loại page).
+### Bước 3: Dựng component tree + State Flow
 
 ### Bước 4: Chọn components
 
-Luôn ưu tiên component từ codebase + shadcn/ui:
-
-| Loại UI           | Component             | Nguồn                                   |
-| ----------------- | --------------------- | --------------------------------------- |
-| Button            | `Button`              | `@/components/ui/button`                |
-| Input             | `Input`               | `@/components/ui/input`                 |
-| Select / Dropdown | `Select`              | `@/components/ui/select`                |
-| Table             | `DataTable`           | `@/components/ui/data-table`            |
-| Pagination        | `DataTablePagination` | `@/components/ui/data-table-pagination` |
-| Badge / Tag       | `Badge`               | `@/components/ui/badge`                 |
-| Dialog / Modal    | `Dialog`              | `@/components/ui/dialog`                |
-| Icons             | `HugeiconsIcon`       | `@hugeicons/react`                      |
+| Loại UI | Component | Nguồn |
+|---|---|---|
+| Button | `Button` | `@/components/ui/button` |
+| Table | `DataTable` | `@/components/ui/data-table` |
+| Dialog/Modal | `Dialog` | `@/components/ui/dialog` |
+| Confirm delete | `DeleteConfirmDialog` | `@/components/ui/delete-confirm-dialog` |
+| Badge | `Badge` | `@/components/ui/badge` |
+| Search input | `Input` + `HugeiconsIcon` | `@/components/ui/input` |
+| Select | `Select` | `@/components/ui/select` |
+| Icons | `HugeiconsIcon` | `@hugeicons/react` |
 
 ### Form fields — luôn dùng `@/components/form/`
 
-Khi code form (trong dialog hoặc trang form), **luôn ưu tiên** các field component từ `@/components/form/` thay vì dùng `<Input>` trần:
+| Field type | Component | Nguồn |
+|---|---|---|
+| Text input | `InputField` | `@/components/form/InputField` |
+| Textarea | `TextareaField` | `@/components/form/TextareaField` |
+| Select/Dropdown | `SelectField` | `@/components/form/SelectField` |
 
-| Field type         | Component         | Nguồn                               |
-| ------------------ | ----------------- | ----------------------------------- |
-| Text input         | `InputField`      | `@/components/form/InputField`      |
-| Textarea           | `TextareaField`   | `@/components/form/TextareaField`   |
-| Select/Dropdown    | *(sắp có)*        | `@/components/form/`                |
-| Number input       | *(sắp có)*        | `@/components/form/`                |
-| Date picker        | *(sắp có)*        | `@/components/form/`                |
-
-**Pattern dùng `InputField`:**
+**Pattern dùng field components:**
 
 ```tsx
 import { InputField } from "@/components/form/InputField";
+import { SelectField } from "@/components/form/SelectField";
 
-<InputField
-  of={form}
-  path="code"
-  label="Mã danh mục"
-  placeholder="VD: VLXD"
-  required
+// Input đơn giản
+<InputField of={form} path={["code"]} label="Mã" placeholder="VD: VLXD" required />
+
+// Input với transform (string → number/null)
+<InputField of={form} path={["parentId"]} label="Danh mục cha"
+  transform={(v) => (v === "" ? null : Number(v))} />
+
+// Select cơ bản
+<SelectField of={form} path={["color"]} label="Màu sắc"
+  options={[{ value: "red", label: "Đỏ" }, ...]} />
+
+// Select với custom render dropdown item + clean trigger
+<SelectField of={form} path={["color"]} label="Màu sắc"
+  options={colorOptions}
+  renderOption={(opt) => <><span className="size-3 rounded-full bg-red-500" /> {opt.label}</>}
+  renderValue={(opt) => opt.label.replace(/^[\u00A0]+/, "")}  // strip indent
 />
-```
 
-**Props chuẩn:** `of` (FormStore), `path` (field path), `label`, `placeholder`, `description`, `required`, `disabled`.
-
-Nếu cần `transform` (vd: string → number cho field nullable number):
-
-```tsx
-<InputField
-  of={form}
-  path="parentId"
-  label="Danh mục cha"
+// Select tree parent (flatten client-side, indent = \u00A0)
+const parentOptions = flattenForSelect(categories);
+<SelectField of={form} path={["parentId"]} label="Danh mục cha"
+  options={parentOptions}
   transform={(v) => (v === "" ? null : Number(v))}
+  renderValue={(opt) => opt.label.replace(/^[\u00A0]+/, "")}
 />
 ```
-
-Nếu cần component không có sẵn → gọi `shadcn` skill để add base component, rồi wrap thành Field component theo pattern của `InputField`.
 
 ### Bước 5: Chờ duyệt + Triển khai
 
-1. Trình bày **mockup ASCII + component tree + state flow** cho user
-2. Hỏi user: "Có muốn thay đổi gì không?"
+1. Trình bày **mockup + component tree + state flow** cho user
+2. Hỏi: "Có muốn thay đổi gì không?"
 3. Sau khi duyệt → code từng file từ trên xuống dưới
 
 ---
 
 ## Cấu trúc file page
 
-Mỗi page trong `src/app/(app)/<route>/` tách thành các file riêng. Cấu trúc thay đổi theo loại page.
-
-### Dạng `table`
+### Table / Table-tree
 
 ```
 src/app/(app)/<route>/
 ├── page.tsx          ← Container: state, data fetching, layout
-├── header.tsx        ← Tiêu đề + stats + actions
-├── filter-bar.tsx    ← Filters + search
-├── table-section.tsx ← Bọc DataTable
-├── columns.tsx       ← Column definitions
-├── footer.tsx        ← Pagination
-├── create-dialog.tsx ← Dialog tạo mới (nếu có)
-└── edit-dialog.tsx   ← Dialog chỉnh sửa (nếu có)
+├── header.tsx        ← Tiêu đề + stats + actions (onAdd prop)
+├── filter-bar.tsx    ← Search input + filters
+├── columns.tsx       ← Column definitions (hàm `createColumns({ onEdit, onDelete })`)
+├── table-section.tsx ← Bọc DataTable với overflow-auto
+├── footer.tsx        ← Tổng count / pagination
+├── create-dialog.tsx ← Dialog tạo mới (usePost / useAddXxx)
+├── edit-dialog.tsx   ← Dialog chỉnh sửa (usePartialUpdate / useUpdateXxx)
 ```
 
-### Dạng `tree`
+### Dialog (create/edit/delete)
 
 ```
-src/app/(app)/<route>/
-├── page.tsx          ← Container: state, data fetching, layout
-├── header.tsx        ← Tiêu đề + stats + actions
-├── filter-bar.tsx    ← Filters + search (nếu có)
-├── tree-section.tsx  ← Bọc tree component
-├── tree-node.tsx     ← Node đệ quy (expand/collapse)
-├── footer.tsx        ← Summary/actions (không pagination)
-├── create-dialog.tsx ← Dialog tạo mới
-└── edit-dialog.tsx   ← Dialog chỉnh sửa
+create-dialog.tsx     ← Dialog + Form + usePost/useAddXxx
+edit-dialog.tsx       ← Dialog + Form + usePartialUpdate/useUpdateXxx
+                       └── EditCategoryForm (child, mount khi có data → pre-fill đúng)
+delete-confirm        ← DeleteConfirmDialog component
 ```
 
-### Dạng `form`
+---
 
-```
-src/app/(app)/<route>/
-├── page.tsx          ← Container: form state, mutation
-├── header.tsx        ← Tiêu đề + actions (Save, Cancel)
-├── form-section.tsx  ← Form fields layout
-├── form-field-*.tsx  ← Custom field components (nếu cần)
-└── page-actions.tsx  ← Submit/Cancel buttons
+## Column Sizing Convention
+
+Mọi table dùng `DataTable` component — đã tự động `table-fixed` + column sizing.
+
+```typescript
+// Trong columns.tsx — mỗi column set size/minSize
+export function createColumns(...): ColumnDef<T>[] {
+  return [
+    { id: "name",  size: 350, minSize: 200, ... },  // fixed
+    { id: "code",  size: 120, minSize: 80,  ... },  // fixed
+    { id: "color",            minSize: 100, ... },  // flexible (cột cuối, không set size)
+    { id: "actions",          minSize: 40,  ... },  // flexible
+  ];
+}
 ```
 
-> Luôn tách tối thiểu: `page.tsx`, `header.tsx`.
+- **Cột cuối** không set `size` → tự động ăn phần còn lại của table width
+- **Tất cả cột** có `minSize` → trigger scroll ngang khi container quá hẹp
+- `DataTable` tự tính `min-width = sum(minSize)` từ column definitions
+
+---
+
+## Dialog Animation Pattern
+
+**Vấn đề:** Khi `onClose()` set state về null → content unmount ngay → animation vỡ.
+
+**Giải pháp:** Dialog tự quản lý `open` nội bộ, dùng `onOpenChangeComplete` của Base UI để clean up **sau khi animation hoàn tất**:
+
+```tsx
+export function EditXxxDialog({ entity, onClose }: Props) {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => { if (entity) setOpen(true); }, [entity]);
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={setOpen}
+      onOpenChangeComplete={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent>
+        {entity && <FormContent entity={entity} onClose={() => setOpen(false)} />}
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+> **`onOpenChangeComplete` là API chính thức của Base UI Dialog.** Không dùng `setTimeout` — kém chính xác.
+
+**Lưu ý quan trọng:**
+- `DialogContent` luôn render (không conditional) — để Base UI có phần tử animate
+- Form content conditional `{category && <Form />}` — chỉ mount khi có data
+- **Không dùng `{category && <DialogContent><Form /></DialogContent>}`** — sẽ vỡ animation
+
+---
+
+## Form Pre-fill Pattern
+
+**Vấn đề:** `useForm({ initialInput })` chỉ đọc `initialInput` lúc mount. Nếu component mount với `initialInput` rỗng rồi sau đó data mới có, form không cập nhật.
+
+**Giải pháp:** Tách form ra child component, chỉ mount khi có data:
+
+```tsx
+// ❌ Sai — form mount với giá trị rỗng, không cập nhật khi category thay đổi
+function EditDialog({ category }) {
+  const form = useForm({ initialInput: { code: category?.code ?? "", ... } });
+  if (!category) return null;
+  return <DialogContent>...</DialogContent>;
+}
+
+// ✅ Đúng — EditForm chỉ mount khi category !== null
+function EditDialog({ category }) {
+  return (
+    <Dialog ...>
+      <DialogContent>
+        {category && <EditForm category={category} />}
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+---
+
+## Delete Confirm Pattern
+
+Dùng `DeleteConfirmDialog` component — tự quản lý animation giống EditDialog:
+
+```tsx
+// page.tsx
+const [deleteTarget, setDeleteTarget] = useState<T | null>(null);
+const { mutate: deleteItem } = useDeleteXxx();
+
+<DeleteConfirmDialog
+  open={deleteTarget !== null}
+  onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+  title="Xoá danh mục"
+  description={`Bạn có chắc muốn xoá "${deleteTarget?.name}"?`}
+  onConfirm={() => { if (deleteTarget) deleteItem(deleteTarget.id); }}
+/>
+```
 
 ---
 
 ## Layout nguyên tắc
 
-Container ngoài cùng luôn dùng:
+Container ngoài cùng: `flex h-full min-h-0 max-h-full flex-col`
 
-```
-flex h-full min-h-0 max-h-full flex-col
-```
-
-Phân vùng:
-
-- Header + FilterBar: `shrink-0` (không co lại)
-- Content: `flex-1 min-h-0 overflow-auto` (co giãn + scroll)
+- Header + FilterBar: `shrink-0`
+- Content (table): `flex-1 min-h-0 overflow-auto`
 - Footer: `shrink-0`
-
-## Tích hợp với skill khác
-
-Khi cần phân tích UI chuyên sâu, gọi sub-agent:
-
-- **`impeccable`** — Review visual hierarchy, layout, cognitive load, accessibility, empty states, error states, UX copy.
-- **`shadcn`** — Khi cần component từ shadcn registry chưa có trong project.
-
-Không gọi mặc định — chỉ gọi khi cần phân tích sâu hoặc cần component mới.
 
 ## Ví dụ page đã làm
 
-Xem `src/app/(app)/materials/` — page Materials dạng `table`, triển khai đúng chuẩn.
+Xem `src/app/(app)/material-categories/` — Material Categories dạng `table-tree`, đầy đủ create/edit/delete dialog.
+Xem `docs/features/material-category/` — Design docs đầy đủ (create-dialog.md, edit-dialog.md).

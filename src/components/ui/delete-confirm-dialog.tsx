@@ -34,30 +34,28 @@ export function DeleteConfirmDialog({
     if (externalOpen) setOpen(true);
   }, [externalOpen]);
 
-  const handleOpenChange = (next: boolean) => {
-    setOpen(next);
-    if (!next) {
-      // Delay clean up cho animation đóng
-      setTimeout(() => onOpenChange(false), 200);
-    }
-  };
-
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={setOpen}
+      onOpenChangeComplete={(next) => {
+        if (!next) onOpenChange(false);
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>
+          <Button variant="outline" onClick={() => setOpen(false)}>
             Hủy
           </Button>
           <Button
             variant="destructive"
             onClick={() => {
               onConfirm();
-              handleOpenChange(false);
+              setOpen(false);
             }}
             disabled={isPending}
           >

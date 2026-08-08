@@ -28,29 +28,28 @@ Trước khi bắt đầu, xác nhận với user rằng đã có:
 
 Nếu backend có design doc từ `entity-workflow` → đọc `docs/entities/<name>/api.md` và `docs/entities/<name>/model.md` làm đầu vào.
 
-## Quy trình 4 bước
+## Quy trình 5 bước
 
 ### Bước 1: Phân tích + Thiết kế
 
-Tạo thư mục `docs/features/<feature-name>/` với các file sau (dùng template trong `templates/`):
+Tạo thư mục `docs/features/<feature-name>/` với các file sau:
 
 | File | Bắt buộc? | Nội dung |
 |---|---|---|
 | `README.md` | ✅ | Index trỏ đến các file con, scope, trạng thái, mapping đến backend entity |
-| `data-model.md` | ✅ | TypeScript interfaces, types, enums, quan hệ giữa các type |
+| `data-model.md` | ✅ | TypeScript types, enums, color maps, helpers, quan hệ giữa các type |
 | `api-spec.md` | ✅ | API endpoints consumed, request/response shape, query params, error cases |
-| `implementation.md` | ✅ | Checklist triển khai dạng checkbox, theo đúng thứ tự: types → schemas → services → endpoints → query keys |
+| `implementation.md` | ✅ | Checklist triển khai dạng checkbox: types → schemas → services → endpoints → query keys |
 | `change-log.md` | ✅ | Lịch sử phiên bản thiết kế |
 
 > **Đặt tên feature:** Dùng tên resource chính, số ít. VD: `material-category`, `unit`, `inbound-note`. Khớp với tên folder trong `src/features/`.
 
-Sau khi viết xong, tạo (hoặc cập nhật) `docs/features/README.md` để thêm feature mới vào index.
+Sau khi viết xong, tạo (hoặc cập nhật) `docs/features/README.md` để thêm feature vào index.
 
 ### Bước 2: Validate (Context7)
 
 Trước khi đề xuất code, tra cứu Context7 các library liên quan:
 
-- TypeScript types, interfaces → không cần Context7
 - Valibot schemas → resolve `/fabian-hiller/valibot`
 - TanStack Query v5 (useQuery, useMutation) → resolve `/tanstack/query`
 - Formisch + usePost (project-specific) → đọc `src/hooks/usePost.ts`
@@ -71,45 +70,81 @@ Chỉ code sau khi user đồng ý.
 
 Code theo đúng thứ tự trong `implementation.md`:
 
-1. **`types.ts`** — định nghĩa tất cả interfaces/types
-2. **`schemas.ts`** — Valibot schemas cho form (POST/PUT), chỉ những field client gửi lên
-3. **`services.ts`** — TanStack Query hooks:
-   - `useQuery` cho GET (list, detail)
-   - `useMutation` cho POST/PUT/DELETE
-   - `usePost` (custom hook) cho form POST/PUT kết hợp Formisch + Valibot
-4. **`src/configs/endpoints.ts`** — thêm endpoint mới vào `authEndpoints`
-5. **`src/configs/querykeys.ts`** — thêm query keys mới
-6. **`index.ts`** — barrel export `types`, `schemas`, `services`
+1. **`types.ts`** — Định nghĩa tất cả types. **Chỉ chứa type definitions** (type alias, union). Không chứa runtime code.
+2. **`utils.ts`** — Runtime code: color maps, helper functions (vd: `getCategoryColorClass()`), constant objects. Export từ `types.ts` các type cần dùng.
+3. **`schemas.ts`** — Valibot schemas cho form (POST/PUT). Chỉ validate field client gửi lên. Dùng `v.pipe()` cho validation chains.
+4. **`services.ts`** — TanStack Query hooks:
+   - `useQuery` cho GET list/detail
+   - `usePost` wrapper cho POST create
+   - `usePartialUpdate` wrapper cho PUT/update
+   - `useMutation` cho DELETE
+5. **`src/configs/endpoints.ts`** — Thêm endpoint vào `authEndpoints`. Dynamic URL dùng arrow function: `update: (id) => \`/resource/${id}/\``.
+6. **`src/configs/querykeys.ts`** — Thêm query keys: `all`, `list()`, `detail(id)`.
+7. **`index.ts`** — Barrel export: `types`, `schemas`, `services`, `utils`.
 
-Sau mỗi mục hoàn thành, đánh dấu `[x]` trong checklist. Báo cáo done + remaining.
+Sau mỗi mục hoàn thành, đánh dấu `[x]` trong checklist.
+
+### Bước 5: Cập nhật docs sau khi code
+
+Sau khi toàn bộ code đã hoàn thành (tất cả phase), **bắt buộc** cập nhật lại design docs để phản ánh trạng thái cuối cùng:
+
+- **`README.md`** — cập nhật trạng thái scope: `🔵 Đang thiết kế` → `✅ Hoàn thành`. Liệt kê tất cả thành phần đã triển khai.
+- **`api-spec.md`** — thêm các endpoint đã triển khai sau thiết kế ban đầu (PUT, DELETE, ...). Cập nhật request/response mẫu.
+- **`implementation.md`** — check off tất cả các mục đã hoàn thành trong tất cả phase.
+- **`change-log.md`** — thêm entry cho phiên bản cuối, ghi nhận tất cả thay đổi.
+- **`docs/features/README.md`** — cập nhật trạng thái feature trong index.
 
 ## Cấu trúc code chuẩn
 
-Mỗi feature trong `src/features/<name>/` có cấu trúc:
-
 ```
 src/features/<name>/
-├── types.ts       ← TypeScript interfaces
-├── schemas.ts     ← Valibot validation schemas
-├── services.ts    ← TanStack Query hooks
-├── index.ts       ← export * from ...
+├── types.ts       ← Chỉ type definitions (type alias, union, interface cho props)
+├── utils.ts       ← Runtime: color maps, helper functions, constants
+├── schemas.ts     ← Valibot validation schemas (POST/PUT body)
+├── services.ts    ← TanStack Query hooks (useQuery, usePost, usePartialUpdate, useMutation)
+└── index.ts       ← Barrel export
 ```
 
 ### Pattern: types.ts
 
 ```typescript
-// Dùng interface (không type alias) cho response objects
-// Dùng type alias cho unions, enums
+// Dùng type alias cho data shapes, KHÔNG dùng interface
+// Interface chỉ dùng cho React component props
 // Tên: PascalCase, khớp với response JSON keys (camelCase)
 
-export interface MaterialCategory {
+export type MaterialCategory = {
   id: number;
   code: string;
   name: string;
+  description: string;
   color: string | null;
   parent: number | null;
-  children: MaterialCategory[];  // tree structure
+  children: MaterialCategory[];
   isActive: boolean;
+};
+
+// Union type cho enum-like values (client kiểm soát danh sách)
+export type MaterialCategoryColor =
+  | "red" | "orange" | "yellow" | "green" | "teal"
+  | "blue" | "indigo" | "purple" | "pink" | "gray";
+```
+
+### Pattern: utils.ts
+
+```typescript
+// Runtime code tách riêng khỏi types.ts
+import type { MaterialCategoryColor } from "./types";
+
+export const CATEGORY_COLOR_MAP: Record<MaterialCategoryColor, string> = {
+  red: "bg-red-100 text-red-700 border-red-300",
+  orange: "bg-orange-100 text-orange-700 border-orange-300",
+  // ...
+};
+
+export function getCategoryColorClass(color: string | null): string {
+  if (!color) return "bg-muted text-muted-foreground border-border";
+  return CATEGORY_COLOR_MAP[color as MaterialCategoryColor]
+    ?? "bg-muted text-muted-foreground border-border";
 }
 ```
 
@@ -117,15 +152,9 @@ export interface MaterialCategory {
 
 ```typescript
 import * as v from "valibot";
+// KHÔNG dùng `import type` — v.partial(), v.object() cần runtime
 
-// Chỉ validate những field client gửi lên (POST/PUT body)
-// KHÔNG validate id, createdAt, updatedAt, isActive (server-managed)
-// Dùng v.optional() cho field không bắt buộc
-// Dùng v.nullable() cho field có thể null
-// Dùng v.pipe() để chain validation
-// Message lỗi: tiếng Việt, ngắn gọn
-
-export const CreateCategorySchema = v.object({
+export const CategorySchema = v.object({
   code: v.pipe(
     v.string("Mã danh mục phải là chuỗi"),
     v.nonEmpty("Mã danh mục không được để trống"),
@@ -137,6 +166,7 @@ export const CreateCategorySchema = v.object({
     v.nonEmpty("Tên danh mục không được để trống"),
     v.maxLength(200, "Tên danh mục tối đa 200 ký tự"),
   ),
+  description: v.optional(v.string(), ""),
   color: v.optional(v.nullable(v.string()), null),
   parentId: v.optional(v.nullable(v.number()), null),
 });
@@ -147,36 +177,43 @@ export const CreateCategorySchema = v.object({
 ```typescript
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authApi } from "@/configs/api";
 import { categoryKeys } from "@/configs/querykeys";
 import { type UsePostOptions, usePost } from "@/hooks/usePost";
-import { CreateCategorySchema } from "./schemas";
+import {
+  type UsePartialUpdateOptions,
+  usePartialUpdate,
+} from "@/hooks/usePartialUpdate";
+import { CategorySchema } from "./schemas";
 import type { MaterialCategory } from "./types";
 
-// GET — list (không pagination, ≤ 30 items)
+// GET list
 export function useGetCategories() {
   return useQuery({
     queryKey: categoryKeys.list(),
     queryFn: async () => {
-      const response = await authApi.get<MaterialCategory[]>((ep) => ep.categories.list);
+      const response = await authApi.get<MaterialCategory[]>(
+        (ep) => ep.categories.list,
+      );
       return response.data;
     },
   });
 }
 
-// POST — create (dùng usePost = Formisch + Valibot + TanStack)
+// POST create — dùng usePost
 export function useAddCategory(
-  options?: Omit<UsePostOptions<typeof CreateCategorySchema>, "schema" | "mutationFn">,
+  options?: Omit<UsePostOptions<typeof CategorySchema>, "schema" | "mutationFn">,
 ) {
   const queryClient = useQueryClient();
-
   return usePost({
     ...options,
-    schema: CreateCategorySchema,
-    initialInput: { code: "", name: "", color: null, parentId: null },
+    schema: CategorySchema,
+    initialInput: { code: "", name: "", description: "", color: null, parentId: null },
     mutationFn: async (data) => {
-      const response = await authApi.post<MaterialCategory>((ep) => ep.categories.create, data);
+      const response = await authApi.post<MaterialCategory>(
+        (ep) => ep.categories.create, data,
+      );
       return response.data;
     },
     onSuccess: (...args) => {
@@ -185,23 +222,63 @@ export function useAddCategory(
     },
   });
 }
+
+// PUT update — dùng usePartialUpdate
+export function useUpdateCategory(
+  id: number,
+  initialInput: Partial<v.InferOutput<typeof CategorySchema>>,
+  options?: Omit<UsePartialUpdateOptions<typeof CategorySchema, MaterialCategory>,
+    "schema" | "mutationFn" | "initialInput" | "id">,
+) {
+  return usePartialUpdate({
+    ...options,
+    schema: CategorySchema,
+    id,
+    initialInput,
+    mutationFn: async ({ id, ...data }) => {
+      const response = await authApi.patch<MaterialCategory>(
+        (ep) => ep.categories.update(id as number),
+        data,
+      );
+      return response.data;
+    },
+    invalidateKeys: categoryKeys.all,
+  });
+}
+
+// DELETE
+export function useDeleteCategory() {
+  const queryClient = useQueryClient();
+  return useMutation<MaterialCategory, AppError, number>({
+    mutationFn: async (id) => {
+      const response = await authApi.delete<MaterialCategory>(
+        (ep) => ep.categories.delete(id),
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.all, exact: false });
+    },
+  });
+}
 ```
 
-### Pattern: endpoint config
+### Pattern: endpoint config (dynamic URLs)
 
 ```typescript
 // Trong src/configs/endpoints.ts → authEndpoints
+// Dynamic URL dùng arrow function, nhận id trả về string
 categories: {
   list: "/categories/",
   create: "/categories/",
-  // detail, update, delete thêm suffix {id} nếu có
-}
+  update: (id: number) => `/categories/${id}/`,
+  delete: (id: number) => `/categories/${id}/`,
+},
 ```
 
 ### Pattern: query keys
 
 ```typescript
-// Trong src/configs/querykeys.ts
 export const categoryKeys = {
   all: ["categories"] as const,
   list: () => [...categoryKeys.all, "list"] as const,
@@ -209,10 +286,14 @@ export const categoryKeys = {
 };
 ```
 
-## Template files
+## Convensions
 
-Tất cả template nằm trong `templates/`. Khi tạo feature mới, copy template và điền nội dung cụ thể, xóa placeholder.
+- **`types.ts` chỉ chứa type** — runtime code (map, helper, constant) → `utils.ts`
+- **`import * as v from "valibot"`** — KHÔNG dùng `import type` vì cần `v.partial()`, `v.object()` runtime
+- **Schema tên `XxxSchema`** — không prefix `Create`/`Update`; edit form dùng `usePartialUpdate` tự tạo partial
+- **Dynamic endpoint URL** — dùng arrow function trong config object
 
 ## Ví dụ feature đã làm
 
-Xem `src/features/warehouse/` — feature Warehouse đã triển khai đúng chuẩn này.
+Xem `src/features/material-category/` — Material Category đã triển khai đúng chuẩn.
+Xem `docs/features/material-category/` — Design docs đầy đủ.

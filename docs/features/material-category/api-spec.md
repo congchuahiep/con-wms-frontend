@@ -1,120 +1,55 @@
 # API Spec — Material Category
 
-## Endpoints consumed
+> **Status:** ✅ Hoàn thành. Tất cả endpoint đã triển khai.
 
-| Method   | Endpoint                     | Mô tả                                    | Permission           | Scope hiện tại |
-| -------- | ---------------------------- | ---------------------------------------- | -------------------- | -------------- |
-| `GET`    | `/api/categories/`           | Danh sách dạng cây lồng (không paginate) | IsAuthenticated      | ✅ Dùng ngay   |
-| `GET`    | `/api/categories/?flat=true` | Danh sách phẳng (cho select box)         | IsAuthenticated      | ⏸️ Deferred    |
-| `POST`   | `/api/categories/`           | Tạo danh mục mới                         | IsAdminOrStorekeeper | ⏸️ Deferred    |
-| `GET`    | `/api/categories/{id}/`      | Chi tiết danh mục                        | IsAuthenticated      | ⏸️ Deferred    |
-| `PUT`    | `/api/categories/{id}/`      | Cập nhật                                 | IsAdminOrStorekeeper | ⏸️ Deferred    |
-| `DELETE` | `/api/categories/{id}/`      | Vô hiệu hóa (soft delete)                | IsAdminOrStorekeeper | ⏸️ Deferred    |
+## Endpoints
+
+| Method | Endpoint | Mô tả | Permission | Status |
+|---|---|---|---|---|
+| `GET` | `/api/categories/` | Danh sách dạng cây lồng, không paginate | IsAuthenticated | ✅ |
+| `POST` | `/api/categories/` | Tạo danh mục mới | IsAdminOrStorekeeper | ✅ |
+| `PUT` | `/api/categories/{id}/` | Cập nhật danh mục | IsAdminOrStorekeeper | ✅ |
+| `DELETE` | `/api/categories/{id}/` | Vô hiệu hóa (soft delete) | IsAdminOrStorekeeper | ✅ |
 
 ## Query params
 
-| Param  | Type      | Mô tả                                             | Dùng khi               |
-| ------ | --------- | ------------------------------------------------- | ---------------------- |
-| `flat` | `boolean` | `true` = danh sách phẳng (pre-order, kèm `depth`) | Select box chọn parent |
+| Param | Type | Mô tả |
+|---|---|---|
+| `flat` | `boolean` | `true` = danh sách phẳng pre-order kèm `depth` (dùng cho select box) |
 
----
+## Request/Response
 
-## Request/Response mẫu
-
-### `GET /api/categories/` — Dạng cây lồng
+### `GET /api/categories/` — Tree
 
 ```json
-[
-    {
-        "id": 1,
-        "code": "VLXD",
-        "name": "Vật liệu xây dựng",
-        "color": "blue",
-        "parent": null,
-        "children": [
-            {
-                "id": 2,
-                "code": "XM",
-                "name": "Xi măng",
-                "color": "red",
-                "parent": 1,
-                "children": []
-            },
-            {
-                "id": 4,
-                "code": "THEP",
-                "name": "Thép",
-                "color": "green",
-                "parent": 1,
-                "children": [
-                    {
-                        "id": 5,
-                        "code": "THEP_TRON",
-                        "name": "Thép tròn",
-                        "color": "orange",
-                        "parent": 4,
-                        "children": []
-                    }
-                ]
-            }
-        ],
-        "isActive": true
-    }
-]
+[{ "id": 1, "code": "VLXD", "name": "Vật liệu xây dựng", "description": "", "color": "blue", "parent": null, "children": [...], "isActive": true }]
 ```
 
-### `GET /api/categories/?flat=true` — Dạng phẳng
+### `POST /api/categories/`
 
 ```json
-[
-    {
-        "id": 1,
-        "code": "VLXD",
-        "name": "Vật liệu xây dựng",
-        "color": "blue",
-        "parent": null,
-        "depth": 0,
-        "isActive": true
-    },
-    {
-        "id": 2,
-        "code": "XM",
-        "name": "Xi măng",
-        "color": "red",
-        "parent": 1,
-        "depth": 1,
-        "isActive": true
-    },
-    {
-        "id": 4,
-        "code": "THEP",
-        "name": "Thép",
-        "color": "green",
-        "parent": 1,
-        "depth": 1,
-        "isActive": true
-    },
-    {
-        "id": 5,
-        "code": "THEP_TRON",
-        "name": "Thép tròn",
-        "color": "orange",
-        "parent": 4,
-        "depth": 2,
-        "isActive": true
-    }
-]
+// Request
+{ "code": "XM", "name": "Xi măng", "description": "...", "color": "red", "parentId": null }
+// Response: 201 — object vừa tạo
 ```
 
-### Error responses
+### `PUT /api/categories/{id}/`
 
-| Status | Body | Mô tả          |
-| ------ | ---- | -------------- |
-| 401    | —    | Chưa đăng nhập |
-| 403    | —    | Không có quyền |
+```json
+// Request (chỉ gửi dirty fields)
+{ "name": "Tên mới" }
+// Response: 200 — object đã cập nhật
+```
 
-## Ghi chú
+### `DELETE /api/categories/{id}/`
 
-- Không pagination (≤ 30 items)
-- Response mặc định là tree lồng (`children`). Frontend tự flatten để hiển thị trong table.
-- `?flat=true` sẽ dùng sau này cho select box chọn parent trong dialog create/edit.
+Response: `204 No Content`
+
+## Error responses
+
+| Status | Body | Mô tả |
+|---|---|---|
+| 400 | `{ "field": ["error message"] }` | Validation error |
+| 401 | — | Chưa đăng nhập |
+| 403 | — | Không có quyền |
+| 404 | — | Không tìm thấy |
