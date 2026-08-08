@@ -4,6 +4,7 @@ import {
   ArrowDown01Icon,
   ArrowRight01Icon,
   DashedLine02Icon,
+  Delete02Icon,
   PencilEdit01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -18,11 +19,10 @@ import {
 
 interface ColumnsOptions {
   onEdit: (category: MaterialCategory) => void;
+  onDelete: (category: MaterialCategory) => void;
 }
 
-export function createColumns({
-  onEdit,
-}: ColumnsOptions): ColumnDef<MaterialCategory>[] {
+export function createColumns({ onEdit, onDelete }: ColumnsOptions): ColumnDef<MaterialCategory>[] {
   return [
     {
       id: "name",
@@ -98,7 +98,7 @@ export function createColumns({
       header: "",
       minSize: 40,
       cell: ({ row }) => (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-0.5">
           <Button
             size="icon-xs"
             variant="ghost"
@@ -108,6 +108,17 @@ export function createColumns({
               icon={PencilEdit01Icon}
               strokeWidth={2}
               className="size-4"
+            />
+          </Button>
+          <Button
+            size="icon-xs"
+            variant="ghost"
+            onClick={() => onDelete(row.original)}
+          >
+            <HugeiconsIcon
+              icon={Delete02Icon}
+              strokeWidth={2}
+              className="size-4 text-destructive"
             />
           </Button>
         </div>

@@ -7,8 +7,10 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import {
   type MaterialCategory,
+  useDeleteCategory,
   useGetCategories,
 } from "@/features/material-category";
 import { createColumns } from "./columns";
@@ -55,6 +57,10 @@ export default function MaterialCategoryPage() {
   const [editingCategory, setEditingCategory] =
     useState<MaterialCategory | null>(null);
 
+  const [deleteTarget, setDeleteTarget] = useState<MaterialCategory | null>(
+    null,
+  );
+
   const filtered = useMemo(() => {
     if (!search.trim()) return categories;
     return filterTree(categories, search.trim());
@@ -62,8 +68,14 @@ export default function MaterialCategoryPage() {
 
   const totalCount = useMemo(() => countAllNodes(categories), [categories]);
 
+  const { mutate: deleteCategory, isPending: isDeleting } = useDeleteCategory();
+
   const tableColumns = useMemo(
-    () => createColumns({ onEdit: setEditingCategory }),
+    () =>
+      createColumns({
+        onEdit: setEditingCategory,
+        onDelete: setDeleteTarget,
+      }),
     [],
   );
 
@@ -87,9 +99,33 @@ export default function MaterialCategoryPage() {
       <MaterialCategoriesTableSection table={table} />
       <MaterialCategoriesFooter table={table} totalCount={totalCount} />
       <CreateCategoryDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+
       <EditCategoryDialog
         category={editingCategory}
         onClose={() => setEditingCategory(null)}
+      />
+
+      <DeleteConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="Xoá danh mục"
+        description={
+          deleteTarget ? (
+            <>
+              Bạn có chắc muốn xoá danh mục{" "}
+              <strong>"{deleteTarget.name}"</strong>? Hành động này không thể
+              hoàn tác.
+            </>
+          ) : (
+            ""
+          )
+        }
+        onConfirm={() => {
+          if (deleteTarget) deleteCategory(deleteTarget.id);
+        }}
+        isPending={isDeleting}
       />
     </div>
   );

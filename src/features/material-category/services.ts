@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { InferOutput } from "valibot";
 import { authApi } from "@/configs/api";
 import { categoryKeys } from "@/configs/querykeys";
@@ -56,6 +56,25 @@ export function useAddCategory(
         exact: false,
       });
       options?.onSuccess?.(...args);
+    },
+  });
+}
+
+export function useDeleteCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation<MaterialCategory, AppError, number>({
+    mutationFn: async (id) => {
+      const response = await authApi.delete<MaterialCategory>(
+        (ep) => ep.categories.delete(id),
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: categoryKeys.all,
+        exact: false,
+      });
     },
   });
 }
