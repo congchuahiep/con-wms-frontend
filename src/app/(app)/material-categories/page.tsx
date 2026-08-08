@@ -12,6 +12,7 @@ import {
   useGetCategories,
 } from "@/features/material-category";
 import { columns } from "./columns";
+import { CreateCategoryDialog } from "./create-dialog";
 import { MaterialCategoriesFilterBar } from "./filter-bar";
 import { MaterialCategoriesFooter } from "./footer";
 import { MaterialCategoriesHeader } from "./header";
@@ -49,6 +50,7 @@ export default function MaterialCategoryPage() {
   const { data: categories = [] } = useGetCategories();
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<ExpandedState>(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return categories;
@@ -69,10 +71,17 @@ export default function MaterialCategoryPage() {
 
   return (
     <div className="flex h-full min-h-0 max-h-full flex-col">
-      <MaterialCategoriesHeader totalCategories={totalCount} />
+      <MaterialCategoriesHeader
+        totalCategories={totalCount}
+        onAdd={() => setDialogOpen(true)}
+      />
       <MaterialCategoriesFilterBar search={search} onSearchChange={setSearch} />
       <MaterialCategoriesTableSection table={table} />
       <MaterialCategoriesFooter table={table} totalCount={totalCount} />
+      <CreateCategoryDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </div>
   );
 }

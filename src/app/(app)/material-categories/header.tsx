@@ -11,10 +11,12 @@ import { cn } from "@/lib/utils";
 
 interface MaterialCategoriesHeaderProps {
   totalCategories: number;
+  onAdd: () => void;
 }
 
 export function MaterialCategoriesHeader({
   totalCategories,
+  onAdd,
 }: MaterialCategoriesHeaderProps) {
   return (
     <header
@@ -46,7 +48,7 @@ export function MaterialCategoriesHeader({
           />
           Xuất CSV
         </Button>
-        <Button size="sm" disabled>
+        <Button size="sm" onClick={onAdd}>
           <HugeiconsIcon
             icon={Add01Icon}
             strokeWidth={2}

@@ -1,16 +1,25 @@
 # Change Log — Material Category
 
+## v1.2 — 2026-08-07
+
+- **types.ts**: + `description: string` vào `MaterialCategory`; giảm `MaterialCategoryColor` 22 → 10 màu.
+- **utils.ts**: Giảm `CATEGORY_COLOR_MAP` 22 → 10 màu.
+- **schemas.ts**: Mới `CreateCategorySchema` (code, name, description, color, parentId).
+- **services.ts**: + `useAddCategory()` mutation via `usePost`.
+- **endpoints.ts**: + `categories.create`.
+- **UI plan**: Create dialog với SelectField (parent + color). SelectField là component mới trong `@/components/form/`.
+- **D8-D11**: Quyết định thiết kế mới cho form UI.
+
 ## v1.1 — 2026-08-07
 
-- **D4 updated:** Bỏ `FlatRow<T>`, dùng TanStack Table native `getSubRows` cho tree. `row.depth` có sẵn để indent.
-- **D5 added:** Search/filter client-side qua `useMemo` (≤ 30 items).
+- Bỏ `FlatRow<T>`, dùng TanStack Table native `getSubRows` cho tree.
+- Search/filter client-side qua `useMemo`.
 
 ## v1.0 — 2026-08-07
 
-Khởi tạo thiết kế data layer cho Material Category:
+Khởi tạo data layer + UI hiển thị:
 
-- **Scope:** GET list dạng tree (hiển thị). POST/PUT/DELETE deferred.
-- **Types:** `MaterialCategory` (tree response), `FlatCategory` (phẳng, deferred), `MaterialCategoryColor` (union 22 màu), `CATEGORY_COLOR_MAP`, `getCategoryColorClass()`.
-- **Services:** `useGetCategories()` — TanStack Query `useQuery` gọi `GET /api/categories/`.
+- **Types:** `MaterialCategory` (tree), `FlatCategory`, `MaterialCategoryColor` (22 màu), `CATEGORY_COLOR_MAP`, `getCategoryColorClass()`.
+- **Services:** `useGetCategories()`.
 - **Config:** `authEndpoints.categories.list`, `categoryKeys`.
-- **UI plan:** TanStack Table với expand/collapse qua `getSubRows` + `enableExpanding`.
+- **UI:** TanStack Table tree, search filter, DataTable column sizing.

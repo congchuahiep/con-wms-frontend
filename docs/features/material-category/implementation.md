@@ -1,44 +1,56 @@
 # Implementation Checklist — Material Category
 
-> **Scope hiện tại:** Chỉ GET (hiển thị). POST/PUT/DELETE deferred.
+> **Phase 1:** GET hiển thị ✅ | **Phase 2:** POST/CREATE 🔵
 
-## Types
+## Phase 1 — GET (hiển thị) ✅
 
-- [x] `src/features/material-category/types.ts`: định nghĩa tất cả interfaces/types
-    - `MaterialCategory` — response từ API (tree, có `children: MaterialCategory[]`)
-    - `FlatCategory` — dạng phẳng (dùng sau này với `?flat=true`)
-    - `MaterialCategoryColor` — union type 22 màu
-    - `CATEGORY_COLOR_MAP` — Record map màu → Tailwind class
-    - `getCategoryColorClass()` — helper lấy Tailwind class từ color string
+- [x] `src/features/material-category/types.ts` — MaterialCategory, FlatCategory, MaterialCategoryColor (10 màu), CATEGORY_COLOR_MAP
+- [x] `src/features/material-category/utils.ts` — getCategoryColorClass()
+- [x] `src/features/material-category/services.ts` — useGetCategories()
+- [x] `src/configs/endpoints.ts` — categories.list
+- [x] `src/configs/querykeys.ts` — categoryKeys
+- [x] `src/features/material-category/index.ts` — barrel export
+- [x] `src/app/(app)/material-categories/page.tsx` — container
+- [x] `src/app/(app)/material-categories/header.tsx` — title + stats
+- [x] `src/app/(app)/material-categories/filter-bar.tsx` — search
+- [x] `src/app/(app)/material-categories/columns.tsx` — 3 cột + expand
+- [x] `src/app/(app)/material-categories/table-section.tsx` — DataTable wrapper
+- [x] `src/app/(app)/material-categories/footer.tsx` — total count
+- [x] `src/components/ui/data-table.tsx` — table-fixed + column sizing
 
-## Schemas (Valibot)
+## Phase 2 — POST/CREATE 🔵
 
-- [x] Chưa cần — không có POST/PUT trong scope hiện tại
-    - Sẽ thêm sau: `CreateCategorySchema`, `UpdateCategorySchema`
+### Data layer (đã code)
 
-## Services (TanStack Query)
+- [x] `types.ts` — + `description: string`
+- [x] `schemas.ts` — CreateCategorySchema (code, name, description, color, parentId)
+- [x] `services.ts` — useAddCategory()
+- [x] `endpoints.ts` — categories.create
+- [x] `index.ts` — export schemas
 
-- [x] `useGetCategories()` — `useQuery` GET `/api/categories/`, trả về `MaterialCategory[]`
-- [x] Không cần `useMutation` nào trong scope hiện tại
+### Data layer (cần sửa)
 
-> **Ghi chú Context7 validation (2026-08-07):** TanStack Table v8 hỗ trợ tree qua `getSubRows: (row) => row.children`. Không cần flatten thủ công. `row.depth` tự động có, dùng để indent. Tham khảo: `enableExpanding`, `getRowCanExpand`, `getSubRows`.
+- [ ] `types.ts` — giảm MaterialCategoryColor 22 → 10 màu
+- [ ] `utils.ts` — giảm CATEGORY_COLOR_MAP 22 → 10 màu
 
-## Endpoints config
+### Form infrastructure
 
-- [x] `src/configs/endpoints.ts` → `authEndpoints.categories.list: "/categories/"`
+- [ ] `src/components/form/SelectField.tsx` — **mới**, theo pattern InputField
+- [ ] Props: `of`, `path`, `label`, `placeholder`, `description`, `required`, `disabled`, `options`, `transform`, `renderOption`
 
-## Query keys
+### UI
 
-- [x] `src/configs/querykeys.ts` → `categoryKeys`
-    - `all: ["categories"]`
-    - `list: () => [...all, "list"]`
+- [ ] `src/app/(app)/material-categories/create-dialog.tsx` — **mới**
+  - Dialog + Formisch Form
+  - 5 field: code, name, description, parentId, color
+  - Parent select: flatten tree client-side, indent theo depth
+  - Color select: 10 màu + renderOption hiển thị chấm tròn màu
+- [ ] `src/app/(app)/material-categories/header.tsx` — enable nút "Thêm danh mục" + `onAdd` prop
+- [ ] `src/app/(app)/material-categories/page.tsx` — + `open` state, wire CreateCategoryDialog
 
-## Barrel export
+### Design docs
 
-- [x] `src/features/material-category/index.ts`: export `types`, `services`
-    - Không export `schemas` (chưa có)
-
-## Helper hooks (cho UI layer)
-
-- [x] Không cần custom hook flatten — TanStack Table xử lý tree qua `getSubRows`
-- [x] Search/filter: `useState` + `useMemo` lọc `MaterialCategory[]` theo `name`/`code` trước khi đưa vào table (client-side, ≤ 30 items)
+- [x] `docs/features/material-category/create-dialog.md` — mockup + component tree + state flow
+- [x] `docs/features/material-category/data-model.md` — updated v1.2
+- [x] `docs/features/material-category/implementation.md` — this file
+- [ ] `docs/features/material-category/change-log.md` — v1.2 entry

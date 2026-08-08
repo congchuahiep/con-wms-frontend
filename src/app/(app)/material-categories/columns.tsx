@@ -10,7 +10,10 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { MaterialCategory } from "@/features/material-category";
-import { getCategoryColorClass } from "@/features/material-category";
+import {
+  getCategoryColorClass,
+  getCategoryColorLabel,
+} from "@/features/material-category";
 
 export const columns: ColumnDef<MaterialCategory>[] = [
   {
@@ -78,10 +81,12 @@ export const columns: ColumnDef<MaterialCategory>[] = [
     header: "Màu sắc",
     cell: ({ getValue }) => {
       const color = getValue<string | null>();
-      if (!color) {
-        return <span className="text-xs text-muted-foreground">—</span>;
-      }
-      return <Badge className={getCategoryColorClass(color)}>{color}</Badge>;
+
+      return (
+        <Badge className={getCategoryColorClass(color)}>
+          {getCategoryColorLabel(color)}
+        </Badge>
+      );
     },
     minSize: 100,
   },

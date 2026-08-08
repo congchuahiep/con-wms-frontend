@@ -2,6 +2,7 @@ export type MaterialCategory = {
   id: number;
   code: string;
   name: string;
+  description: string;
   color: string | null;
   parent: number | null;
   children: MaterialCategory[];
@@ -16,6 +17,7 @@ export type FlatCategory = {
   id: number;
   code: string;
   name: string;
+  description: string;
   color: string | null;
   parent: number | null;
   depth: number;
@@ -25,23 +27,11 @@ export type FlatCategory = {
 export type MaterialCategoryColor =
   | "red"
   | "orange"
-  | "amber"
   | "yellow"
-  | "lime"
   | "green"
-  | "emerald"
   | "teal"
-  | "cyan"
-  | "sky"
   | "blue"
   | "indigo"
-  | "violet"
   | "purple"
-  | "fuchsia"
   | "pink"
-  | "rose"
-  | "slate"
-  | "gray"
-  | "zinc"
-  | "neutral"
-  | "stone";
+  | "gray";
