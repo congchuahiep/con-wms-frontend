@@ -1,15 +1,19 @@
 # API Spec — Unit
 
+> **v1.2** — PATCH (không PUT) cho update, nhất quán `usePartialUpdate`
+
 ## Endpoints consumed
 
-| Method   | Endpoint              | Mô tả                             | Permission               | Scope hiện tại |
-| -------- | --------------------- | --------------------------------- | ------------------------ | -------------- |
-| `GET`    | `/api/units/`         | Danh sách đơn vị (không paginate) | IsAuthenticated          | ✅ Dùng ngay   |
-| `POST`   | `/api/units/`         | Tạo đơn vị mới                    | IsAdminOrStorekeeper     | ✅ Dùng ngay   |
-| `PUT`    | `/api/units/{id}/`    | Cập nhật đơn vị                   | IsAdminOrStorekeeper     | ✅ Dùng ngay   |
-| `DELETE` | `/api/units/{id}/`    | Vô hiệu hóa (soft delete)         | IsAdminOrStorekeeper     | ✅ Dùng ngay   |
+| Method   | Endpoint           | Mô tả                             | Permission           | Scope hiện tại |
+| -------- | ------------------ | --------------------------------- | -------------------- | -------------- |
+| `GET`    | `/api/units/`      | Danh sách đơn vị (không paginate) | IsAuthenticated      | ✅ Dùng ngay   |
+| `POST`   | `/api/units/`      | Tạo đơn vị mới                    | IsAdminOrStorekeeper | ✅ Dùng ngay   |
+| `PATCH`  | `/api/units/{id}/` | Cập nhật đơn vị (partial update)  | IsAdminOrStorekeeper | ✅ Dùng ngay   |
+| `DELETE` | `/api/units/{id}/` | Vô hiệu hóa (soft delete)         | IsAdminOrStorekeeper | ✅ Dùng ngay   |
 
-Không có query params (không paginate, không filter server-side).
+> **Convention:** Dự án dùng `authApi.patch()` + `usePartialUpdate` cho mọi thao tác cập nhật — chỉ gửi field thay đổi.
+
+Không có query params (không paginate, không filter server-side). Backend trả về tất cả unit đang active, sắp xếp theo `code`.
 
 ---
 
@@ -17,14 +21,30 @@ Không có query params (không paginate, không filter server-side).
 
 ### `GET /api/units/`
 
+Response từ `UnitSerializer`:
+
 ```json
 [
-    { "id": 1, "code": "BAO", "name": "Bao", "isActive": true },
-    { "id": 2, "code": "KG", "name": "Kilogram", "isActive": true },
-    { "id": 3, "code": "TAN", "name": "Tấn", "isActive": true },
-    { "id": 4, "code": "M3", "name": "Mét khối", "isActive": true }
+    {
+        "id": 1,
+        "code": "BAO",
+        "name": "Bao",
+        "is_active": true,
+        "created_at": "2026-08-05T00:00:00Z",
+        "updated_at": "2026-08-05T00:00:00Z"
+    },
+    {
+        "id": 2,
+        "code": "KG",
+        "name": "Kilogram",
+        "is_active": true,
+        "created_at": "2026-08-05T00:00:00Z",
+        "updated_at": "2026-08-05T00:00:00Z"
+    }
 ]
 ```
+
+> **Frontend type** chỉ lấy `id`, `code`, `name`, `isActive` — bỏ `created_at`/`updated_at`.
 
 ### `POST /api/units/`
 
@@ -40,17 +60,20 @@ Không có query params (không paginate, không filter server-side).
     "id": 5,
     "code": "LIT",
     "name": "Lít",
-    "isActive": true
+    "is_active": true,
+    "created_at": "2026-08-08T00:00:00Z",
+    "updated_at": "2026-08-08T00:00:00Z"
 }
 ```
 
-### `PUT /api/units/5/`
+### `PATCH /api/units/5/`
+
+> **Frontend convention:** `authApi.patch()` + `usePartialUpdate` — chỉ gửi field bị thay đổi.
 
 ```json
-// Request
+// Request (chỉ field thay đổi)
 {
-    "code": "LITER",
-    "name": "Lít"
+    "code": "LITER"
 }
 
 // Response: 200 OK
@@ -58,7 +81,9 @@ Không có query params (không paginate, không filter server-side).
     "id": 5,
     "code": "LITER",
     "name": "Lít",
-    "isActive": true
+    "is_active": true,
+    "created_at": "2026-08-08T00:00:00Z",
+    "updated_at": "2026-08-08T00:00:00Z"
 }
 ```
 
@@ -66,14 +91,15 @@ Không có query params (không paginate, không filter server-side).
 
 ### Error responses
 
-| Status | Body | Mô tả          |
-| ------ | ---- | -------------- |
-| 400    | JSON | Validation error (code trùng, thiếu field) |
-| 401    | —    | Chưa đăng nhập |
-| 403    | —    | Không có quyền (không phải Admin/Storekeeper) |
+| Status | Body | Mô tả                                                        |
+| ------ | ---- | ------------------------------------------------------------ |
+| 400    | JSON | Validation error (vd: code trùng, code quá dài, thiếu field) |
+| 401    | —    | Chưa đăng nhập                                               |
+| 403    | —    | Không có quyền (không phải Admin/Storekeeper)                |
 
 ## Ghi chú
 
-- Không pagination (≤ 20 items)
-- Response là mảng phẳng (không tree, không lồng)
-- Search/filter thực hiện client-side
+- `UnitViewSet.pagination_class = None` — không paginate, ≤ 20 items
+- `get_queryset()` lọc `is_active=True`, sắp xếp theo `code`
+- `perform_destroy()` — soft delete, set `is_active = False`
+- Response JSON dùng snake_case từ DRF → client camelCase renderer tự convert

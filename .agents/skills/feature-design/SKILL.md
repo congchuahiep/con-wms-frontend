@@ -72,11 +72,11 @@ Code theo đúng thứ tự trong `implementation.md`:
 
 1. **`types.ts`** — Định nghĩa tất cả types. **Chỉ chứa type definitions** (type alias, union). Không chứa runtime code.
 2. **`utils.ts`** — Runtime code: color maps, helper functions (vd: `getCategoryColorClass()`), constant objects. Export từ `types.ts` các type cần dùng.
-3. **`schemas.ts`** — Valibot schemas cho form (POST/PUT). Chỉ validate field client gửi lên. Dùng `v.pipe()` cho validation chains.
+3. **`schemas.ts`** — Valibot schemas cho form (POST/PATCH). Chỉ validate field client gửi lên. Dùng `v.pipe()` cho validation chains.
 4. **`services.ts`** — TanStack Query hooks:
    - `useQuery` cho GET list/detail
    - `usePost` wrapper cho POST create
-   - `usePartialUpdate` wrapper cho PUT/update
+   - `usePartialUpdate` wrapper cho PATCH/update
    - `useMutation` cho DELETE
 5. **`src/configs/endpoints.ts`** — Thêm endpoint vào `authEndpoints`. Dynamic URL dùng arrow function: `update: (id) => \`/resource/${id}/\``.
 6. **`src/configs/querykeys.ts`** — Thêm query keys: `all`, `list()`, `detail(id)`.
@@ -100,7 +100,7 @@ Sau khi toàn bộ code đã hoàn thành (tất cả phase), **bắt buộc** c
 src/features/<name>/
 ├── types.ts       ← Chỉ type definitions (type alias, union, interface cho props)
 ├── utils.ts       ← Runtime: color maps, helper functions, constants
-├── schemas.ts     ← Valibot validation schemas (POST/PUT body)
+├── schemas.ts     ← Valibot validation schemas (POST/PATCH body)
 ├── services.ts    ← TanStack Query hooks (useQuery, usePost, usePartialUpdate, useMutation)
 └── index.ts       ← Barrel export
 ```
@@ -223,7 +223,7 @@ export function useAddCategory(
   });
 }
 
-// PUT update — dùng usePartialUpdate
+// PATCH update — dùng usePartialUpdate, chỉ gửi field thay đổi
 export function useUpdateCategory(
   id: number,
   initialInput: Partial<v.InferOutput<typeof CategorySchema>>,
@@ -286,11 +286,12 @@ export const categoryKeys = {
 };
 ```
 
-## Convensions
+## Conventions
 
 - **`types.ts` chỉ chứa type** — runtime code (map, helper, constant) → `utils.ts`
 - **`import * as v from "valibot"`** — KHÔNG dùng `import type` vì cần `v.partial()`, `v.object()` runtime
 - **Schema tên `XxxSchema`** — không prefix `Create`/`Update`; edit form dùng `usePartialUpdate` tự tạo partial
+- **Update luôn dùng PATCH** — `authApi.patch()` + `usePartialUpdate` hook, chỉ gửi field bị thay đổi (dirty tracking)
 - **Dynamic endpoint URL** — dùng arrow function trong config object
 
 ## Ví dụ feature đã làm

@@ -39,6 +39,12 @@ export const authEndpoints = {
     update: (id: number) => `/categories/${id}/`,
     delete: (id: number) => `/categories/${id}/`,
   },
+  units: {
+    list: "/units/",
+    create: "/units/",
+    update: (id: number) => `/units/${id}/`,
+    delete: (id: number) => `/units/${id}/`,
+  },
 } as const;
 
 /**
