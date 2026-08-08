@@ -70,10 +70,14 @@ type SelectFieldProps<
    */
   transform?: (value: string) => PathValue<v.InferInput<TSchema>, TFieldPath>;
   /**
-   * Custom render cho mỗi option item.
-   * Nhận option, trả về ReactNode.
+   * Custom render cho mỗi option item trong dropdown.
    */
   renderOption?: (option: { value: string; label: string }) => React.ReactNode;
+  /**
+   * Custom render cho giá trị đã chọn trên trigger.
+   * Mặc định dùng `option.label` thuần (không indent).
+   */
+  renderValue?: (option: { value: string; label: string }) => React.ReactNode;
 };
 
 /** Giá trị dùng cho option "không chọn" */
@@ -94,6 +98,7 @@ export function SelectField<
   options,
   transform,
   renderOption,
+  renderValue,
 }: SelectFieldProps<TSchema, TFieldPath>) {
   return (
     <FormField of={of} path={path}>
@@ -137,7 +142,9 @@ export function SelectField<
                     if (!value || value === EMPTY_VALUE) return placeholder;
                     const option = options.find((o) => o.value === value);
                     if (!option) return value;
-                    return renderOption ? renderOption(option) : option.label;
+                    return renderValue
+                      ? renderValue(option)
+                      : option.label;
                   }}
                 </SelectValue>
               </SelectTrigger>

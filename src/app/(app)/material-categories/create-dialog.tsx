@@ -135,6 +135,7 @@ export function CreateCategoryDialog({
             label="Danh mục cha"
             options={parentOptions}
             transform={(v) => (v === "" ? null : Number(v))}
+            renderValue={(opt) => opt.label.replace(/^[\u00A0]+/, "")}
           />
 
           <SelectField

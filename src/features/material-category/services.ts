@@ -1,14 +1,20 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { InferOutput } from "valibot";
 import { authApi } from "@/configs/api";
 import { categoryKeys } from "@/configs/querykeys";
+import type { AppError } from "@/errors";
+import {
+  type UsePartialUpdateOptions,
+  usePartialUpdate,
+} from "@/hooks/usePartialUpdate";
 import { type UsePostOptions, usePost } from "@/hooks/usePost";
-import { CreateCategorySchema } from "./schemas";
+import { CategorySchema } from "./schemas";
 import type { MaterialCategory } from "./types";
 
 export function useGetCategories() {
-  return useQuery({
+  return useQuery<MaterialCategory[], AppError>({
     queryKey: categoryKeys.list(),
     queryFn: async () => {
       const response = await authApi.get<MaterialCategory[]>(
@@ -21,7 +27,7 @@ export function useGetCategories() {
 
 export function useAddCategory(
   options?: Omit<
-    UsePostOptions<typeof CreateCategorySchema>,
+    UsePostOptions<typeof CategorySchema>,
     "schema" | "mutationFn"
   >,
 ) {
@@ -29,7 +35,7 @@ export function useAddCategory(
 
   return usePost({
     ...options,
-    schema: CreateCategorySchema,
+    schema: CategorySchema,
     initialInput: {
       code: "",
       name: "",
@@ -51,5 +57,29 @@ export function useAddCategory(
       });
       options?.onSuccess?.(...args);
     },
+  });
+}
+
+export function useUpdateCategory(
+  id: number,
+  initialInput: Partial<InferOutput<typeof CategorySchema>>,
+  options?: Omit<
+    UsePartialUpdateOptions<typeof CategorySchema, MaterialCategory, AppError>,
+    "schema" | "mutationFn" | "initialInput" | "id"
+  >,
+) {
+  return usePartialUpdate({
+    ...options,
+    schema: CategorySchema,
+    id: id,
+    initialInput: initialInput,
+    mutationFn: async ({ id, ...data }) => {
+      const response = await authApi.patch<MaterialCategory>(
+        (ep) => ep.categories.update(id as number),
+        data,
+      );
+      return response.data;
+    },
+    invalidateKeys: categoryKeys.all,
   });
 }

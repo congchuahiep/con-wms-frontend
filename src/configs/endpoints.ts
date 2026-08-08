@@ -36,6 +36,7 @@ export const authEndpoints = {
   categories: {
     list: "/categories/",
     create: "/categories/",
+    update: (id: number) => `/categories/${id}/`,
   },
 } as const;
 

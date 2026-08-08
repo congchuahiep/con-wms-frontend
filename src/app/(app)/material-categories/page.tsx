@@ -11,8 +11,9 @@ import {
   type MaterialCategory,
   useGetCategories,
 } from "@/features/material-category";
-import { columns } from "./columns";
+import { createColumns } from "./columns";
 import { CreateCategoryDialog } from "./create-dialog";
+import { EditCategoryDialog } from "./edit-dialog";
 import { MaterialCategoriesFilterBar } from "./filter-bar";
 import { MaterialCategoriesFooter } from "./footer";
 import { MaterialCategoriesHeader } from "./header";
@@ -51,6 +52,8 @@ export default function MaterialCategoryPage() {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<ExpandedState>(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] =
+    useState<MaterialCategory | null>(null);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return categories;
@@ -59,9 +62,14 @@ export default function MaterialCategoryPage() {
 
   const totalCount = useMemo(() => countAllNodes(categories), [categories]);
 
+  const tableColumns = useMemo(
+    () => createColumns({ onEdit: setEditingCategory }),
+    [],
+  );
+
   const table = useReactTable({
     data: filtered,
-    columns,
+    columns: tableColumns,
     state: { expanded },
     onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
@@ -78,9 +86,10 @@ export default function MaterialCategoryPage() {
       <MaterialCategoriesFilterBar search={search} onSearchChange={setSearch} />
       <MaterialCategoriesTableSection table={table} />
       <MaterialCategoriesFooter table={table} totalCount={totalCount} />
-      <CreateCategoryDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
+      <CreateCategoryDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <EditCategoryDialog
+        category={editingCategory}
+        onClose={() => setEditingCategory(null)}
       />
     </div>
   );

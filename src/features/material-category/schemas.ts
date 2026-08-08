@@ -1,6 +1,6 @@
 import * as v from "valibot";
 
-export const CreateCategorySchema = v.object({
+export const CategorySchema = v.object({
   code: v.pipe(
     v.string("Mã danh mục phải là chuỗi"),
     v.nonEmpty("Mã danh mục không được để trống"),

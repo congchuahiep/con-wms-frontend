@@ -4,7 +4,7 @@ export type MaterialCategory = {
   name: string;
   description: string;
   color: string | null;
-  parent: number | null;
+  parentId: number | null;
   children: MaterialCategory[];
   isActive: boolean;
 };
