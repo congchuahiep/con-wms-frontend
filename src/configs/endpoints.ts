@@ -42,8 +42,14 @@ export const authEndpoints = {
   units: {
     list: "/units/",
     create: "/units/",
+    detail: (id: number) => `/units/${id}/`,
     update: (id: number) => `/units/${id}/`,
     delete: (id: number) => `/units/${id}/`,
+    conversions: (id: number) => `/units/${id}/conversions/`,
+  },
+  unitConversions: {
+    update: (id: number) => `/unit-conversions/${id}/`,
+    delete: (id: number) => `/unit-conversions/${id}/`,
   },
 } as const;
 

@@ -23,47 +23,31 @@ type InputFieldProps<
   TSchema extends FormSchema = FormSchema,
   TFieldPath extends RequiredPath = RequiredPath,
 > = {
-  /**
-   * Form store từ useForm.
-   */
+  /** Form store từ useForm. */
   of: FormStore<TSchema>;
-  /**
-   * Path đến field trong schema.
-   */
+  /** Path đến field trong schema. */
   path: ValidPath<v.InferInput<TSchema>, TFieldPath>;
-  /**
-   * Label hiển thị.
-   */
+  /** Label hiển thị. */
   label?: string;
-  /**
-   * Mô tả phụ dưới input.
-   */
+  /** Mô tả phụ dưới input. */
   description?: string;
-  /**
-   * Placeholder khi chưa nhập.
-   */
+  /** Placeholder khi chưa nhập. */
   placeholder?: string;
-  /**
-   * Vô hiệu hóa input.
-   */
+  /** Vô hiệu hóa input. */
   disabled?: boolean;
-  /**
-   * Hiển thị dấu * khi field bắt buộc.
-   */
+  /** Hiển thị dấu * khi field bắt buộc. */
   required?: boolean;
-  /**
-   * Class name cho Field wrapper.
-   */
+  /** Class name cho Field wrapper. */
   className?: string;
-  /**
-   * Class name cho Input.
-   */
+  /** Class name cho Input. */
   inputClassName?: string;
   /**
    * Hàm biến đổi giá trị string từ input sang giá trị schema.
    * Ví dụ: chuyển string sang number hoặc null cho field number.
    */
   transform?: (value: string) => PathValue<v.InferInput<TSchema>, TFieldPath>;
+  /** Bỏ qua Field wrapper, chỉ render Input thuần. */
+  noField?: boolean;
 } & Omit<
   React.ComponentProps<typeof Input>,
   "name" | "value" | "onChange" | "ref"
@@ -72,31 +56,26 @@ type InputFieldProps<
 export function InputField<
   TSchema extends FormSchema = FormSchema,
   TFieldPath extends RequiredPath = RequiredPath,
->({
-  of,
-  path,
-  label,
-  description,
-  placeholder,
-  disabled,
-  className,
-  inputClassName,
-  required,
-  transform,
-  ...inputProps
-}: InputFieldProps<TSchema, TFieldPath>) {
+>(props: InputFieldProps<TSchema, TFieldPath>) {
+  const {
+    of,
+    path,
+    label,
+    description,
+    placeholder,
+    disabled,
+    className,
+    inputClassName,
+    required,
+    transform,
+    noField,
+    ...inputProps
+  } = props;
+
   return (
     <FormField of={of} path={path}>
-      {(field) => (
-        <Field
-          data-invalid={field.errors ? true : undefined}
-          className={className}
-        >
-          {label && (
-            <FieldLabel htmlFor={field.props.name}>
-              {label} {required && <span className="text-red-500">*</span>}
-            </FieldLabel>
-          )}
+      {(field) => {
+        const input = (
           <Input
             {...field.props}
             {...inputProps}
@@ -126,12 +105,30 @@ export function InputField<
             aria-invalid={field.errors ? true : undefined}
             className={inputClassName}
           />
-          {description && <FieldDescription>{description}</FieldDescription>}
-          {field.errors && (
-            <FieldError errors={field.errors.map((message) => ({ message }))} />
-          )}
-        </Field>
-      )}
+        );
+
+        if (noField) return input;
+
+        return (
+          <Field
+            data-invalid={field.errors ? true : undefined}
+            className={className}
+          >
+            {label && (
+              <FieldLabel htmlFor={field.props.name}>
+                {label} {required && <span className="text-red-500">*</span>}
+              </FieldLabel>
+            )}
+            {input}
+            {description && <FieldDescription>{description}</FieldDescription>}
+            {field.errors && (
+              <FieldError
+                errors={field.errors.map((message) => ({ message }))}
+              />
+            )}
+          </Field>
+        );
+      }}
     </FormField>
   );
 }

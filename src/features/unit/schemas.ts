@@ -1,5 +1,10 @@
 import * as v from "valibot";
 
+export const CONVERSION_TYPE_LABELS: Record<string, string> = {
+  global: "Toàn cục",
+  material: "Vật tư",
+} as const;
+
 export const UnitSchema = v.object({
   code: v.pipe(
     v.string("Mã đơn vị phải là chuỗi"),
@@ -14,5 +19,9 @@ export const UnitSchema = v.object({
     v.string("Tên đơn vị phải là chuỗi"),
     v.nonEmpty("Tên đơn vị không được để trống"),
     v.maxLength(100, "Tên đơn vị tối đa 100 ký tự"),
+  ),
+  conversionType: v.picklist(
+    ["global", "material"],
+    "Loại quy đổi không hợp lệ",
   ),
 });

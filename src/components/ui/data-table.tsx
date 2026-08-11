@@ -17,63 +17,81 @@ import { cn } from "@/lib/utils";
 interface DataTableProps<TData> {
   table: Table<TData>;
   className?: string;
+  emptyPlaceholder?: React.ReactNode;
+  showHeader?: boolean;
 }
 
-export function DataTable<TData>({ table, className }: DataTableProps<TData>) {
+export function DataTable<TData>({
+  table,
+  className,
+  emptyPlaceholder,
+  showHeader = true,
+}: DataTableProps<TData>) {
+  // Tính tổng minSize của tất cả columns để table có thể scroll ngang
+  // khi container quá hẹp (theo page-design skill convention)
+  const minTableWidth = table
+    .getAllLeafColumns()
+    .reduce((sum, column) => sum + (column.columnDef.minSize ?? 0), 0);
+
   return (
-    <div className={cn("min-w-full", className)}>
+    <div
+      className={cn("w-full overflow-x-auto", className)}
+      style={minTableWidth > 0 ? { minWidth: minTableWidth } : undefined}
+    >
       <TableRoot className="w-full table-fixed">
-        <TableHeader className="sticky top-0 z-10 bg-background">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  style={{
-                    width:
-                      header.column.columnDef.size !== undefined
-                        ? header.column.columnDef.size
-                        : undefined,
-                  }}
-                >
-                  {header.isPlaceholder ? null : header.column.getCanSort() ? (
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-1 hover:text-foreground"
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
-                      {flexRender(
+        {showHeader && (
+          <TableHeader className="sticky top-0 z-10 bg-background">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    style={{
+                      width:
+                        header.column.columnDef.size !== undefined
+                          ? header.column.columnDef.size
+                          : undefined,
+                    }}
+                  >
+                    {header.isPlaceholder ? null : header.column.getCanSort() ? (
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 hover:text-foreground"
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                        {{
+                          asc: (
+                            <HugeiconsIcon
+                              icon={ArrowUp01Icon}
+                              strokeWidth={2}
+                              className="size-3.5"
+                            />
+                          ),
+                          desc: (
+                            <HugeiconsIcon
+                              icon={ArrowDown01Icon}
+                              strokeWidth={2}
+                              className="size-3.5"
+                            />
+                          ),
+                        }[header.column.getIsSorted() as string] ?? null}
+                      </button>
+                    ) : (
+                      flexRender(
                         header.column.columnDef.header,
                         header.getContext(),
-                      )}
-                      {{
-                        asc: (
-                          <HugeiconsIcon
-                            icon={ArrowUp01Icon}
-                            strokeWidth={2}
-                            className="size-3.5"
-                          />
-                        ),
-                        desc: (
-                          <HugeiconsIcon
-                            icon={ArrowDown01Icon}
-                            strokeWidth={2}
-                            className="size-3.5"
-                          />
-                        ),
-                      }[header.column.getIsSorted() as string] ?? null}
-                    </button>
-                  ) : (
-                    flexRender(
-                      header.column.columnDef.header,
-                      header.getContext(),
-                    )
-                  )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
+                      )
+                    )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+        )}
         <TableBody>
           {table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
@@ -91,7 +109,7 @@ export function DataTable<TData>({ table, className }: DataTableProps<TData>) {
                 colSpan={table.getAllColumns().length}
                 className="h-24 text-center text-muted-foreground"
               >
-                Không tìm thấy dữ liệu
+                {emptyPlaceholder ?? "Không tìm thấy dữ liệu"}
               </TableCell>
             </TableRow>
           )}

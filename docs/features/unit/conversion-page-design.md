@@ -1,14 +1,12 @@
 # UnitConversion — Page Design
 
-> **v1.1** — Dùng DataTable sub-components (TanStack expand pattern), chỉ quy đổi toàn cục
+> **v2.0** — Quy đổi tích hợp vào Edit Unit Dialog (không expand row)
 
 ## Bước 0: Xác định loại page
 
-**`table` với sub-components** — Bảng Units chính + expand row hiển thị bảng conversion bên dưới.
+**`dialog`** — Quy đổi hiển thị và quản lý ngay trong Edit Unit Dialog. Không thay đổi bảng Units chính.
 
-Pattern: TanStack Table **sub-components** — mỗi row expand hiển thị custom UI (không phải sub-rows cùng cấu trúc như `getSubRows`).
-
-**Trang tham khảo:** `src/app/(app)/material-categories/` — dùng `getSubRows` cho tree. Pattern này dùng `getRowCanExpand` + render sub-component JSX.
+**Lý do:** Expand row trong table gây rối thao tác. Edit Dialog là nơi tự nhiên để xem/sửa conversion vì conversion thuộc về 1 unit cụ thể.
 
 ---
 
@@ -16,87 +14,63 @@ Pattern: TanStack Table **sub-components** — mỗi row expand hiển thị cus
 
 | # | Câu hỏi | Trả lời |
 |---|---|---|
-| 1 | **Ai dùng?** | Admin + Thủ kho: CRUD conversion. Nhân viên khác: chỉ xem |
-| 2 | **Cần làm gì?** | Xem quy đổi của 1 đơn vị bằng cách expand row. Thêm/sửa/xoá quy đổi |
-| 3 | **Dữ liệu hiển thị thế nào?** | Row chính: Mã \| Tên \| Thao tác. Row expand: bảng conversion |
-| 4 | **Có filter/search không?** | Search vẫn filter unit, không ảnh hưởng conversion |
-| 5 | **Có form create/edit không?** | Dialog con: create-conversion, edit-conversion |
+| 1 | **Ai dùng?** | Admin + Thủ kho: CRUD conversion. Nhân viên khác: chỉ xem (GET) |
+| 2 | **Cần làm gì?** | Khi edit unit → thấy danh sách quy đổi, thêm/sửa/xoá ngay trong dialog |
+| 3 | **Dữ liệu hiển thị thế nào?** | Bảng nhỏ trong Edit Dialog: Quy đổi \| Hệ số \| Thao tác |
+| 4 | **Có filter/search không?** | Không (≤ 10 conversions) |
+| 5 | **Form create conversion?** | Dialog con mở từ nút [+ Thêm] trong Edit Dialog |
 
 ---
 
 ## Bước 2: Mockup ASCII
 
-### Trạng thái bình thường (rows collapsed)
+### Edit Unit Dialog (có quy đổi)
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│  ⚖️  Đơn vị tính                    5 đơn vị   [+ Thêm đơn vị] │
-├──────────────────────────────────────────────────────────────┤
-│  🔍 Tìm mã, tên đơn vị...                                    │
-├──────────────────────────────────────────────────────────────┤
-│  Mã          │ Tên                    │                      │
-│  ▶ BAO       │ Bao                    │        ✏️  🗑️        │  ← expand button
-│  ▶ KG        │ Kilogram               │        ✏️  🗑️        │
-│  ▶ M3        │ Mét khối               │        ✏️  🗑️        │
-│  ▶ TAN       │ Tấn                    │        ✏️  🗑️        │
-├──────────────────────────────────────────────────────────────┤
-│  5 đơn vị                                                     │
-└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│  Sửa đơn vị tính                                         │
+│  Chỉnh sửa thông tin "Bao"                              │
+│                                                          │
+│  Mã đơn vị *                                             │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │ BAO                                              │   │  ← InputField code
+│  └──────────────────────────────────────────────────┘   │
+│                                                          │
+│  Tên đơn vị *                                            │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │ Bao                                              │   │  ← InputField name
+│  └──────────────────────────────────────────────────┘   │
+│                                                          │
+│  ── Quy đổi toàn cục ────────────────────────────────── │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │ Quy đổi               │ Hệ số     │              │   │
+│  │ 1 BAO = KG            │ 1000.0000 │    ✏️  🗑️    │   │  ← Bảng conversion
+│  └──────────────────────────────────────────────────┘   │
+│  [+ Thêm quy đổi]                                        │  ← Nút thêm
+│                                                          │
+│                         [Hủy]  [Lưu thay đổi]            │
+└──────────────────────────────────────────────────────────┘
 ```
 
-### Row expanded (BAO)
+### Edit Dialog (không có quy đổi)
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│  Mã          │ Tên                    │                      │
-│  ▼ BAO       │ Bao                    │        ✏️  🗑️        │  ← expanded
-│              ├────────────────────────┤                      │
-│              │ Quy đổi toàn cục                  [+ Thêm]    │  ← sub-component
-│              │ ┌──────────────────────────────────────────┐  │
-│              │ │ Quy đổi            │ Hệ số    │          │  │
-│              │ │ 1 BAO = KG         │ 1000.0   │  ✏️ 🗑️   │  │
-│              │ └──────────────────────────────────────────┘  │
-│              │ (Chưa có quy đổi)                              │
-├──────────────────────────────────────────────────────────────┤
-│  ▶ KG        │ Kilogram               │        ✏️  🗑️        │
-│  ▶ M3        │ Mét khối               │        ✏️  🗑️        │
-│  ▶ TAN       │ Tấn                    │        ✏️  🗑️        │
+┌──────────────────────────────────────────────────────────┐
+│  ... (form unit như trên) ...                            │
+│                                                          │
+│  ── Quy đổi toàn cục ────────────────────────────────── │
+│                                                          │
+│  Chưa có quy đổi nào                                     │  ← Empty state
+│  [+ Thêm quy đổi]                                        │
+└──────────────────────────────────────────────────────────┘
 ```
 
-### Create Conversion Dialog
-
-```
-┌─────────────────────────────────────┐
-│  Thêm quy đổi — BAO                 │
-│  1 BAO = ?                         │
-│                                     │
-│  Đơn vị đích *                      │
-│  ┌─────────────────────────────┐    │
-│  │ Chọn đơn vị...          ▾   │    │  ← SelectField (danh sách units, trừ unit gốc)
-│  └─────────────────────────────┘    │
-│                                     │
-│  Hệ số quy đổi *                    │
-│  ┌─────────────────────────────┐    │
-│  │ 1000                        │    │  ← InputField type="number"
-│  └─────────────────────────────┘    │
-│                                     │
-│              [Hủy]  [Thêm quy đổi]  │
-└─────────────────────────────────────┘
-```
-
-### Edit Conversion Dialog
+### Create Unit Dialog — giữ nguyên, không thay đổi
 
 ```
 ┌─────────────────────────────────────┐
-│  Sửa quy đổi                        │
-│  1 BAO = KG                        │
-│                                     │
-│  Hệ số quy đổi *                    │
-│  ┌─────────────────────────────┐    │
-│  │ 1000                        │    │  ← InputField type="number" (pre-filled)
-│  └─────────────────────────────┘    │
-│                                     │
-│              [Hủy]  [Lưu thay đổi]  │
+│  Thêm đơn vị tính                   │
+│  (chỉ code + name, không có quy đổi) │  ← Không đổi
 └─────────────────────────────────────┘
 ```
 
@@ -108,9 +82,9 @@ Pattern: TanStack Table **sub-components** — mỗi row expand hiển thị cus
 
 ```
 src/app/(app)/units/
-├── page.tsx                    ← + expanded state, conversion fetching
-├── columns.tsx                 ← + expand button column
-├── conversion-subtable.tsx     ← ✨ MỚI: Sub-component render trong row expand
+├── page.tsx                    ← KHÔNG đổi (không expand state)
+├── columns.tsx                 ← KHÔNG đổi (không expand button)
+├── edit-dialog.tsx             ← ✏️ SỬA: thêm section quy đổi
 ├── create-conversion-dialog.tsx ← ✨ MỚI: Form thêm quy đổi (toàn cục)
 ├── edit-conversion-dialog.tsx  ← ✨ MỚI: Form sửa hệ số
 └── (các file cũ giữ nguyên)
@@ -124,68 +98,69 @@ src/features/unit-conversion/
 └── index.ts                    ← ✨ MỚI
 ```
 
-### State ownership (page.tsx)
+### State flow — Edit Dialog mở rộng
 
 ```
-page.tsx
-├── search: string
-├── dialogOpen: boolean                      ← create unit dialog
-├── editingUnit: Unit | null                 ← edit unit dialog
-├── deleteTarget: Unit | null                ← delete unit confirm
-├── expanded: ExpandedState                 ← ✨ MỚI: TanStack expanded state
-├── conversionsMap: Record<number, DetailedUnit>  ← ✨ MỚI: cache conversion data
+EditUnitDialog (sửa từ bản cũ)
+├── props: { unit, onClose }
+├── state nội bộ:
+│   ├── open: boolean                      ← animation control
+│   ├── createConversionOpen: boolean
+│   ├── editingConversion: UnitConversion | null
+│   └── deleteTarget: UnitConversion | null
 │
-├── table:
-│   state: { expanded }
-│   onExpandedChange: setExpanded
-│   getRowCanExpand: () => true
-│   renderSubComponent: ({ row }) => <ConversionSubtable unitId={row.original.id} />
-│
-├── ConversionSubtable (sub-component)
-│   ├── props: { unitId }
-│   ├── useGetUnitConversions(unitId) → { globalConversions }
-│   ├── state: createDialogOpen, editingConversion, deleteTarget
-│   ├── Bảng DataTable hiển thị globalConversions
-│   │   └── Cột: Quy đổi | Hệ số | Thao tác (✏️🗑️)
-│   ├── [+ Thêm quy đổi] button → CreateConversionDialog
-│   ├── CreateConversionDialog
-│   │   └── props: { unitId, unitCode, open, onClose }
-│   │   └── useAddConversion(unitId)
-│   ├── EditConversionDialog
-│   │   └── props: { conversion, unitCode, toUnitCode, open, onClose }
-│   │   └── useUpdateConversion(conversion.id)
-│   └── DeleteConfirmDialog
-│       └── useDeleteConversion()
+├── DialogContent (luôn render)
+│   └── {unit && <EditUnitFormContent unit={unit} />}
+│       │
+│       ├── Form unit (code + name)        ← giữ nguyên
+│       │
+│       ├── useGetUnitConversions(unit.id) ← ✨ fetch conversions
+│       │   → { globalConversions }
+│       │
+│       ├── Section "Quy đổi toàn cục"
+│       │   ├── Bảng DataTable globalConversions
+│       │   │   └── Cột: Quy đổi | Hệ số | ✏️🗑️
+│       │   └── [+ Thêm quy đổi] button
+│       │
+│       ├── CreateConversionDialog
+│       │   └── props: { unit, open, onClose }
+│       │
+│       ├── EditConversionDialog
+│       │   └── props: { conversion, unitCode, toUnitCode, open, onClose }
+│       │
+│       └── DeleteConfirmDialog
+│           └── useDeleteConversion()
 ```
 
-### Data flow: Expand row
+### Data flow: Mở Edit Dialog
 
 ```
-User click ▶ trên row BAO
-  → onExpandedChange → setExpanded({ 1: true })  (id=1 là BAO)
-  → table re-render
-  → row.getIsExpanded() === true
-  → render <ConversionSubtable unitId={1} />
-    → useGetUnitConversions(1) fetch
-    → render bảng globalConversions
+✏️ click trên row BAO
+  → page.tsx setEditingUnit(unit)
+  → EditUnitDialog mount
+    → useEffect: setOpen(true)
+    → EditUnitFormContent mount (có unit)
+      → useGetUnitConversions(unit.id) fetch
+      → render bảng globalConversions
 ```
 
 ### Data flow: Thêm quy đổi
 
 ```
-[+ Thêm quy đổi] trong subtable
-  → ConversionSubtable: setCreateDialogOpen(true)
+[+ Thêm quy đổi] trong Edit Dialog
+  → setCreateConversionOpen(true)
   → CreateConversionDialog mount
     → user chọn: toUnitId, factor
     → submit → useAddConversion(unitId).mutate(data)
       → onSuccess: invalidate unitConversionKeys.byUnit(unitId)
-      → setCreateDialogOpen(false)
+      → setCreateConversionOpen(false)
 ```
 
 ### Data flow: Sửa quy đổi
 
 ```
-✏️ click → setEditingConversion(conv)
+✏️ click trên row conversion
+  → setEditingConversion(conv)
   → EditConversionDialog mount
     → user sửa factor
     → submit → useUpdateConversion(conv.id).handleSubmit
@@ -196,51 +171,27 @@ User click ▶ trên row BAO
 
 ## Bước 4: Component Selection
 
-### Bảng Units chính (columns.tsx — thay đổi)
-
-```typescript
-// Thêm cột expand button (dùng chung cột "name" hoặc cột riêng)
-// Pattern từ TanStack sub-components example:
-
-{
-  id: "name",
-  cell: ({ row, getValue }) => {
-    const canExpand = row.getCanExpand();
-    const isExpanded = row.getIsExpanded();
-    return (
-      <div className="flex items-center gap-1">
-        {canExpand && (
-          <Button size="icon-xs" variant="outline" onClick={row.getToggleExpandedHandler()}>
-            <HugeiconsIcon icon={isExpanded ? ArrowDown01Icon : ArrowRight01Icon} />
-          </Button>
-        )}
-        <span className="font-medium">{getValue<string>()}</span>
-      </div>
-    );
-  },
-}
-```
-
-### Conversion Subtable (component mới)
+### Edit Dialog (mở rộng)
 
 | UI Element | Component | Ghi chú |
 |---|---|---|
-| Section header | `<div>` + `Button` [+ Thêm] | "Quy đổi toàn cục" |
-| Bảng conversion | `DataTable` | Columns: Quy đổi \| Hệ số \| Thao tác |
-| Empty state | Text muted | "Chưa có quy đổi" |
-| Row actions | `Button size="icon-xs" variant="ghost"` | ✏️ 🗑️ |
-| Loading | Spinner/skeleton | Khi đang fetch |
+| Form unit | `InputField` × 2 | code + name (giữ nguyên) |
+| Separator | `<div className="border-t my-4" />` | Ngăn cách form unit và conversion |
+| Section title | `<h3>` + `Button` [+ Thêm] | "Quy đổi toàn cục" |
+| Bảng conversion | `DataTable` | 3 cột: Quy đổi \| Hệ số \| Thao tác |
+| Empty state | `<p className="text-muted-foreground text-sm py-4">` | |
+| Loading | Skeleton/spinner | |
+| Dialog footer | `DialogFooter` + Hủy/Lưu | Giữ nguyên vị trí cuối dialog |
 
 ### Conversion Table Columns
 
 ```typescript
-// conversion-subtable.tsx
 const conversionColumns: ColumnDef<UnitConversion>[] = [
   {
     id: "formula",
     header: "Quy đổi",
     cell: ({ row }) => (
-      <span>1 {fromUnitCode} = {row.original.factor} {row.original.toUnit.code}</span>
+      <span>1 {fromUnitCode} = {parseFloat(row.original.factor)} {row.original.toUnit.code}</span>
     ),
     size: 300,
     minSize: 200,
@@ -249,7 +200,7 @@ const conversionColumns: ColumnDef<UnitConversion>[] = [
     id: "factor",
     accessorKey: "factor",
     header: "Hệ số",
-    cell: ({ getValue }) => <code>{getValue<string>()}</code>,
+    cell: ({ getValue }) => <code>{parseFloat(getValue<string>()).toFixed(4)}</code>,
     size: 100,
     minSize: 80,
   },
@@ -271,27 +222,16 @@ const conversionColumns: ColumnDef<UnitConversion>[] = [
 ];
 ```
 
-### Create Conversion Dialog
-
-| UI Element | Component | Ghi chú |
-|---|---|---|
-| To unit select | `SelectField` | Options: units trừ unit gốc |
-| Factor input | `InputField` | `type="number" step="any"` |
-
-### Edit Conversion Dialog
-
-| UI Element | Component | Ghi chú |
-|---|---|---|
-| Factor input | `InputField` | Pre-filled, `type="number"` |
-
 ---
 
 ## Bước 5: Chờ duyệt
 
 > **Trạng thái:** 🔵 Chờ user duyệt trước khi code
 >
-> **Thay đổi chính so với thiết kế trước:**
-> - ~~Detail Dialog~~ → **Row expand (sub-components)** — nhất quán TanStack Table
-> - ~~Material scope~~ → **Chỉ toàn cục** — backlog quy đổi theo vật tư
-> - ~~Dialog chứa 2 bảng~~ → **Subtable trong row expand** — 1 bảng global conversions
-> - Cột "name" trong Units table thêm nút ▶/▼ expand
+> **Tổng kết thiết kế v2.0:**
+> - ~~Row expand~~ → **Edit Dialog mở rộng** — gọn, không rối table
+> - Create Dialog: **không đổi** (chỉ code + name)
+> - Edit Dialog: thêm section **Quy đổi toàn cục** + bảng DataTable
+> - Chỉ toàn cục, material scope = backlog
+> - File mới: 5 (data layer unit-conversion + 2 dialog con)
+> - File sửa: 1 (`edit-dialog.tsx` thêm section conversion)

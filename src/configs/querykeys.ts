@@ -16,4 +16,10 @@ export const categoryKeys = {
 export const unitKeys = {
   all: ["units"] as const,
   list: () => [...unitKeys.all, "list"] as const,
+  detail: (id: number) => [...unitKeys.all, id] as const,
+};
+
+export const unitConversionKeys = {
+  all: ["unit-conversions"] as const,
+  byUnit: (unitId: number) => [...unitConversionKeys.all, unitId] as const,
 };

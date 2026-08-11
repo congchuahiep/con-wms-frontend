@@ -11,7 +11,20 @@ import {
 } from "@/hooks/usePartialUpdate";
 import { type UsePostOptions, usePost } from "@/hooks/usePost";
 import { UnitSchema } from "./schemas";
-import type { Unit } from "./types";
+import type { DetailedUnit, Unit } from "./types";
+
+export function useGetUnit(id: number, options?: { enabled?: boolean }) {
+  return useQuery<DetailedUnit, AppError>({
+    ...options,
+    queryKey: unitKeys.detail(id),
+    queryFn: async () => {
+      const response = await authApi.get<DetailedUnit>((ep) =>
+        ep.units.detail(id),
+      );
+      return response.data;
+    },
+  });
+}
 
 export function useGetUnits() {
   return useQuery<Unit[], AppError>({
@@ -24,22 +37,16 @@ export function useGetUnits() {
 }
 
 export function useAddUnit(
-  options?: Omit<
-    UsePostOptions<typeof UnitSchema>,
-    "schema" | "mutationFn"
-  >,
+  options?: Omit<UsePostOptions<typeof UnitSchema>, "schema" | "mutationFn">,
 ) {
   const queryClient = useQueryClient();
 
   return usePost({
     ...options,
     schema: UnitSchema,
-    initialInput: { code: "", name: "" },
+    initialInput: { code: "", name: "", conversionType: "global" },
     mutationFn: async (data) => {
-      const response = await authApi.post<Unit>(
-        (ep) => ep.units.create,
-        data,
-      );
+      const response = await authApi.post<Unit>((ep) => ep.units.create, data);
       return response.data;
     },
     onSuccess: (...args) => {
@@ -78,9 +85,7 @@ export function useDeleteUnit() {
 
   return useMutation<Unit, AppError, number>({
     mutationFn: async (id) => {
-      const response = await authApi.delete<Unit>(
-        (ep) => ep.units.delete(id),
-      );
+      const response = await authApi.delete<Unit>((ep) => ep.units.delete(id));
       return response.data;
     },
     onSuccess: () => {
