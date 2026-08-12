@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: Dữ liệu có thể là bất kỳ kiểu nào */
 "use client";
 
 import {
@@ -11,7 +12,6 @@ import {
   type UseMutationOptions,
   type UseMutationResult,
   useMutation,
-  useQueryClient,
 } from "@tanstack/react-query";
 import { useMemo } from "react";
 import * as v from "valibot";
@@ -47,11 +47,6 @@ export interface UsePartialUpdateOptions<
    * ID của entity đang edit.
    */
   id: number | string;
-
-  /**
-   * Query keys cần invalidate sau khi update thành công.
-   */
-  invalidateKeys?: ReadonlyArray<string | number>;
 
   /**
    * Chế độ validate lần đầu.
@@ -149,7 +144,6 @@ export interface UsePartialUpdateReturn<
  * - Khởi tạo form với giá trị hiện tại của entity
  * - Chỉ gửi những field bị thay đổi (dirty tracking)
  * - Map ValidationError từ server vào đúng field
- * - Invalidate query cache sau khi thành công
  */
 export function usePartialUpdate<
   TSchema extends v.ObjectSchema<any, any>,
@@ -163,7 +157,6 @@ export function usePartialUpdate<
     schema,
     initialInput,
     id,
-    invalidateKeys,
     validate,
     revalidate,
     mutationFn,
@@ -173,8 +166,6 @@ export function usePartialUpdate<
     onError,
     onSettled,
   } = options;
-
-  const queryClient = useQueryClient();
 
   // Tạo partial schema — mọi field optional
   const partialSchema = useMemo(() => v.partial(schema), [schema]);
@@ -195,9 +186,6 @@ export function usePartialUpdate<
     mutationFn,
     onMutate,
     onSuccess: (data, variables, onMutateResult, context) => {
-      if (invalidateKeys) {
-        queryClient.invalidateQueries({ queryKey: invalidateKeys });
-      }
       onSuccess?.(data, variables, onMutateResult, context);
     },
     onError: (error, variables, onMutateResult, context) => {

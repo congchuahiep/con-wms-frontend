@@ -87,6 +87,8 @@ export function useUpdateCategory(
     "schema" | "mutationFn" | "initialInput" | "id"
   >,
 ) {
+  const queryClient = useQueryClient();
+
   return usePartialUpdate({
     ...options,
     schema: CategorySchema,
@@ -99,6 +101,9 @@ export function useUpdateCategory(
       );
       return response.data;
     },
-    invalidateKeys: categoryKeys.all,
+    onSuccess: (data, ...args) => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.all, exact: false });
+      options?.onSuccess?.(data, ...args);
+    },
   });
 }

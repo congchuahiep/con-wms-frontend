@@ -23,3 +23,10 @@ export const unitConversionKeys = {
   all: ["unit-conversions"] as const,
   byUnit: (unitId: number) => [...unitConversionKeys.all, unitId] as const,
 };
+
+export const materialKeys = {
+  all: ["materials"] as const,
+  list: () => [...materialKeys.all, "list"] as const,
+  filteredList: (params?: unknown) => [...materialKeys.list(), params] as const,
+  detail: (id: number) => [...materialKeys.all, "detail", id] as const,
+};

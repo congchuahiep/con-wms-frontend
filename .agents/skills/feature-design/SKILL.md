@@ -10,6 +10,7 @@ Quy trình bắt buộc khi thiết kế tầng dữ liệu cho bất kỳ featu
 ## Vai trò
 
 Skill này chỉ giải quyết **data layer**. Nó trả lời câu hỏi:
+
 - Feature này nhận/trả về dữ liệu gì?
 - Validation rules gì?
 - Gọi API endpoint nào?
@@ -20,11 +21,11 @@ Skill này **KHÔNG** giải quyết UI. Sau khi skill này hoàn tất → dùn
 
 Trước khi bắt đầu, xác nhận với user rằng đã có:
 
-| Mục | Trạng thái |
-|---|---|
-| API spec từ backend (endpoint, request/response shape) | Bắt buộc |
-| Quyền hạn (ai được gọi API này?) | Nên có |
-| Mock data mẫu (nếu API chưa sẵn sàng) | Tốt nếu có |
+| Mục                                                    | Trạng thái |
+| ------------------------------------------------------ | ---------- |
+| API spec từ backend (endpoint, request/response shape) | Bắt buộc   |
+| Quyền hạn (ai được gọi API này?)                       | Nên có     |
+| Mock data mẫu (nếu API chưa sẵn sàng)                  | Tốt nếu có |
 
 Nếu backend có design doc từ `entity-workflow` → đọc `docs/entities/<name>/api.md` và `docs/entities/<name>/model.md` làm đầu vào.
 
@@ -34,13 +35,13 @@ Nếu backend có design doc từ `entity-workflow` → đọc `docs/entities/<n
 
 Tạo thư mục `docs/features/<feature-name>/` với các file sau:
 
-| File | Bắt buộc? | Nội dung |
-|---|---|---|
-| `README.md` | ✅ | Index trỏ đến các file con, scope, trạng thái, mapping đến backend entity |
-| `data-model.md` | ✅ | TypeScript types, enums, color maps, helpers, quan hệ giữa các type |
-| `api-spec.md` | ✅ | API endpoints consumed, request/response shape, query params, error cases |
-| `implementation.md` | ✅ | Checklist triển khai dạng checkbox: types → schemas → services → endpoints → query keys |
-| `change-log.md` | ✅ | Lịch sử phiên bản thiết kế |
+| File                | Bắt buộc? | Nội dung                                                                                |
+| ------------------- | --------- | --------------------------------------------------------------------------------------- |
+| `README.md`         | ✅        | Index trỏ đến các file con, scope, trạng thái, mapping đến backend entity               |
+| `data-model.md`     | ✅        | TypeScript types, enums, color maps, helpers, quan hệ giữa các type                     |
+| `api-spec.md`       | ✅        | API endpoints consumed, request/response shape, query params, error cases               |
+| `implementation.md` | ✅        | Checklist triển khai dạng checkbox: types → schemas → services → endpoints → query keys |
+| `change-log.md`     | ✅        | Lịch sử phiên bản thiết kế                                                              |
 
 > **Đặt tên feature:** Dùng tên resource chính, số ít. VD: `material-category`, `unit`, `inbound-note`. Khớp với tên folder trong `src/features/`.
 
@@ -60,6 +61,7 @@ Ghi nhận kết quả validate vào `change-log.md`.
 ### Bước 3: Chờ user duyệt
 
 **Không code khi chưa có xác nhận từ user.** Trình bày thiết kế, hỏi:
+
 - Types có đầy đủ không?
 - Schema validation có hợp lý không?
 - API mapping có đúng không?
@@ -74,10 +76,10 @@ Code theo đúng thứ tự trong `implementation.md`:
 2. **`utils.ts`** — Runtime code: color maps, helper functions (vd: `getCategoryColorClass()`), constant objects. Export từ `types.ts` các type cần dùng.
 3. **`schemas.ts`** — Valibot schemas cho form (POST/PATCH). Chỉ validate field client gửi lên. Dùng `v.pipe()` cho validation chains.
 4. **`services.ts`** — TanStack Query hooks:
-   - `useQuery` cho GET list/detail
-   - `usePost` wrapper cho POST create
-   - `usePartialUpdate` wrapper cho PATCH/update
-   - `useMutation` cho DELETE
+    - `useQuery` cho GET list/detail
+    - `usePost` wrapper cho POST create
+    - `usePartialUpdate` wrapper cho PATCH/update
+    - `useMutation` cho DELETE
 5. **`src/configs/endpoints.ts`** — Thêm endpoint vào `authEndpoints`. Dynamic URL dùng arrow function: `update: (id) => \`/resource/${id}/\``.
 6. **`src/configs/querykeys.ts`** — Thêm query keys: `all`, `list()`, `detail(id)`.
 7. **`index.ts`** — Barrel export: `types`, `schemas`, `services`, `utils`.
@@ -113,20 +115,28 @@ src/features/<name>/
 // Tên: PascalCase, khớp với response JSON keys (camelCase)
 
 export type MaterialCategory = {
-  id: number;
-  code: string;
-  name: string;
-  description: string;
-  color: string | null;
-  parent: number | null;
-  children: MaterialCategory[];
-  isActive: boolean;
+    id: number;
+    code: string;
+    name: string;
+    description: string;
+    color: string | null;
+    parent: number | null;
+    children: MaterialCategory[];
+    isActive: boolean;
 };
 
 // Union type cho enum-like values (client kiểm soát danh sách)
 export type MaterialCategoryColor =
-  | "red" | "orange" | "yellow" | "green" | "teal"
-  | "blue" | "indigo" | "purple" | "pink" | "gray";
+    | "red"
+    | "orange"
+    | "yellow"
+    | "green"
+    | "teal"
+    | "blue"
+    | "indigo"
+    | "purple"
+    | "pink"
+    | "gray";
 ```
 
 ### Pattern: utils.ts
@@ -136,15 +146,17 @@ export type MaterialCategoryColor =
 import type { MaterialCategoryColor } from "./types";
 
 export const CATEGORY_COLOR_MAP: Record<MaterialCategoryColor, string> = {
-  red: "bg-red-100 text-red-700 border-red-300",
-  orange: "bg-orange-100 text-orange-700 border-orange-300",
-  // ...
+    red: "bg-red-100 text-red-700 border-red-300",
+    orange: "bg-orange-100 text-orange-700 border-orange-300",
+    // ...
 };
 
 export function getCategoryColorClass(color: string | null): string {
-  if (!color) return "bg-muted text-muted-foreground border-border";
-  return CATEGORY_COLOR_MAP[color as MaterialCategoryColor]
-    ?? "bg-muted text-muted-foreground border-border";
+    if (!color) return "bg-muted text-muted-foreground border-border";
+    return (
+        CATEGORY_COLOR_MAP[color as MaterialCategoryColor] ??
+        "bg-muted text-muted-foreground border-border"
+    );
 }
 ```
 
@@ -155,20 +167,23 @@ import * as v from "valibot";
 // KHÔNG dùng `import type` — v.partial(), v.object() cần runtime
 
 export const CategorySchema = v.object({
-  code: v.pipe(
-    v.string("Mã danh mục phải là chuỗi"),
-    v.nonEmpty("Mã danh mục không được để trống"),
-    v.regex(/^[a-zA-Z0-9_]+$/, "Mã danh mục chỉ được chứa chữ cái, số và dấu gạch dưới"),
-    v.maxLength(50, "Mã danh mục tối đa 50 ký tự"),
-  ),
-  name: v.pipe(
-    v.string("Tên danh mục phải là chuỗi"),
-    v.nonEmpty("Tên danh mục không được để trống"),
-    v.maxLength(200, "Tên danh mục tối đa 200 ký tự"),
-  ),
-  description: v.optional(v.string(), ""),
-  color: v.optional(v.nullable(v.string()), null),
-  parentId: v.optional(v.nullable(v.number()), null),
+    code: v.pipe(
+        v.string("Mã danh mục phải là chuỗi"),
+        v.nonEmpty("Mã danh mục không được để trống"),
+        v.regex(
+            /^[a-zA-Z0-9_]+$/,
+            "Mã danh mục chỉ được chứa chữ cái, số và dấu gạch dưới",
+        ),
+        v.maxLength(50, "Mã danh mục tối đa 50 ký tự"),
+    ),
+    name: v.pipe(
+        v.string("Tên danh mục phải là chuỗi"),
+        v.nonEmpty("Tên danh mục không được để trống"),
+        v.maxLength(200, "Tên danh mục tối đa 200 ký tự"),
+    ),
+    description: v.optional(v.string(), ""),
+    color: v.optional(v.nullable(v.string()), null),
+    parentId: v.optional(v.nullable(v.number()), null),
 });
 ```
 
@@ -182,84 +197,109 @@ import { authApi } from "@/configs/api";
 import { categoryKeys } from "@/configs/querykeys";
 import { type UsePostOptions, usePost } from "@/hooks/usePost";
 import {
-  type UsePartialUpdateOptions,
-  usePartialUpdate,
+    type UsePartialUpdateOptions,
+    usePartialUpdate,
 } from "@/hooks/usePartialUpdate";
 import { CategorySchema } from "./schemas";
 import type { MaterialCategory } from "./types";
 
 // GET list
 export function useGetCategories() {
-  return useQuery({
-    queryKey: categoryKeys.list(),
-    queryFn: async () => {
-      const response = await authApi.get<MaterialCategory[]>(
-        (ep) => ep.categories.list,
-      );
-      return response.data;
-    },
-  });
+    return useQuery({
+        queryKey: categoryKeys.list(),
+        queryFn: async () => {
+            const response = await authApi.get<MaterialCategory[]>(
+                (ep) => ep.categories.list,
+            );
+            return response.data;
+        },
+    });
 }
 
 // POST create — dùng usePost
 export function useAddCategory(
-  options?: Omit<UsePostOptions<typeof CategorySchema>, "schema" | "mutationFn">,
+    options?: Omit<
+        UsePostOptions<typeof CategorySchema>,
+        "schema" | "mutationFn"
+    >,
 ) {
-  const queryClient = useQueryClient();
-  return usePost({
-    ...options,
-    schema: CategorySchema,
-    initialInput: { code: "", name: "", description: "", color: null, parentId: null },
-    mutationFn: async (data) => {
-      const response = await authApi.post<MaterialCategory>(
-        (ep) => ep.categories.create, data,
-      );
-      return response.data;
-    },
-    onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all, exact: false });
-      options?.onSuccess?.(...args);
-    },
-  });
+    const queryClient = useQueryClient();
+    return usePost({
+        ...options,
+        schema: CategorySchema,
+        initialInput: {
+            code: "",
+            name: "",
+            description: "",
+            color: null,
+            parentId: null,
+        },
+        mutationFn: async (data) => {
+            const response = await authApi.post<MaterialCategory>(
+                (ep) => ep.categories.create,
+                data,
+            );
+            return response.data;
+        },
+        onSuccess: (...args) => {
+            queryClient.invalidateQueries({
+                queryKey: categoryKeys.all,
+                exact: false,
+            });
+            options?.onSuccess?.(...args);
+        },
+    });
 }
 
 // PATCH update — dùng usePartialUpdate, chỉ gửi field thay đổi
 export function useUpdateCategory(
-  id: number,
-  initialInput: Partial<v.InferOutput<typeof CategorySchema>>,
-  options?: Omit<UsePartialUpdateOptions<typeof CategorySchema, MaterialCategory>,
-    "schema" | "mutationFn" | "initialInput" | "id">,
+    id: number,
+    initialInput: Partial<v.InferOutput<typeof CategorySchema>>,
+    options?: Omit<
+        UsePartialUpdateOptions<typeof CategorySchema, MaterialCategory>,
+        "schema" | "mutationFn" | "initialInput" | "id"
+    >,
 ) {
-  return usePartialUpdate({
-    ...options,
-    schema: CategorySchema,
-    id,
-    initialInput,
-    mutationFn: async ({ id, ...data }) => {
-      const response = await authApi.patch<MaterialCategory>(
-        (ep) => ep.categories.update(id as number),
-        data,
-      );
-      return response.data;
-    },
-    invalidateKeys: categoryKeys.all,
-  });
+    const queryClient = useQueryClient();
+    return usePartialUpdate({
+        ...options,
+        schema: CategorySchema,
+        id,
+        initialInput,
+        mutationFn: async ({ id, ...data }) => {
+            const response = await authApi.patch<MaterialCategory>(
+                (ep) => ep.categories.update(id as number),
+                data,
+            );
+            return response.data;
+        },
+        onSuccess: (...args) => {
+            queryClient.invalidateQueries({
+                queryKey: categoryKeys.all,
+                exact: false,
+            });
+            options?.onSuccess?.(...args);
+        },
+    });
 }
 
 // DELETE
 export function useDeleteCategory() {
-  const queryClient = useQueryClient();
-  return useMutation<MaterialCategory, AppError, number>({
-    mutationFn: async (id) => {
-      const response = await authApi.delete<MaterialCategory>(
-        (ep) => ep.categories.delete(id),
-      );
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all, exact: false });
-    },
-  });
+    const queryClient = useQueryClient();
+    return useMutation<MaterialCategory, AppError, number>({
+        mutationFn: async (id) => {
+            const response = await authApi.delete<MaterialCategory>((ep) =>
+                ep.categories.delete(id),
+            );
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: categoryKeys.all,
+                exact: false,
+            });
+        },
+    });
 }
 ```
 
@@ -280,9 +320,9 @@ categories: {
 
 ```typescript
 export const categoryKeys = {
-  all: ["categories"] as const,
-  list: () => [...categoryKeys.all, "list"] as const,
-  detail: (id: number) => [...categoryKeys.all, "detail", id] as const,
+    all: ["categories"] as const,
+    list: () => [...categoryKeys.all, "list"] as const,
+    detail: (id: number) => [...categoryKeys.all, "detail", id] as const,
 };
 ```
 

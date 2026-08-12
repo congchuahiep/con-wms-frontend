@@ -64,6 +64,8 @@ export function useUpdateUnit(
     "schema" | "mutationFn" | "initialInput" | "id"
   >,
 ) {
+  const queryClient = useQueryClient();
+
   return usePartialUpdate({
     ...options,
     schema: UnitSchema,
@@ -76,7 +78,10 @@ export function useUpdateUnit(
       );
       return response.data;
     },
-    invalidateKeys: unitKeys.all,
+    onSuccess: (data, ...args) => {
+      queryClient.invalidateQueries({ queryKey: unitKeys.all, exact: false });
+      options?.onSuccess?.(data, ...args);
+    },
   });
 }
 

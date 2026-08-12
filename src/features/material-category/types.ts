@@ -35,3 +35,10 @@ export type MaterialCategoryColor =
   | "purple"
   | "pink"
   | "gray";
+
+/** Tham chiếu gọn cho nested reference trong response (vd: Material.category) */
+export type SimpleMaterialCategory = {
+  id: number;
+  code: string;
+  name: string;
+};

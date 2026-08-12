@@ -1,7 +1,6 @@
 "use client";
 
 import { Form } from "@formisch/react";
-import { useMemo } from "react";
 import { InputField } from "@/components/form/InputField";
 import { SelectField } from "@/components/form/SelectField";
 import { TextareaField } from "@/components/form/TextareaField";
@@ -15,30 +14,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  type MaterialCategory,
+  CategorySelectField,
   type MaterialCategoryColor,
   useAddCategory,
-  useGetCategories,
 } from "@/features/material-category";
 import { cn } from "@/lib/utils";
 
 interface CreateCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
-
-/** Flatten tree → select options với label có indent theo depth */
-function flattenForSelect(
-  nodes: MaterialCategory[],
-  depth = 0,
-): Array<{ value: string; label: string }> {
-  return nodes.flatMap((node) => [
-    {
-      value: String(node.id),
-      label: `${"\u00A0\u00A0\u00A0".repeat(depth)}${node.name}`,
-    },
-    ...flattenForSelect(node.children, depth + 1),
-  ]);
 }
 
 /** Danh sách 10 màu cho color select */
@@ -76,13 +60,6 @@ export function CreateCategoryDialog({
   open,
   onOpenChange,
 }: CreateCategoryDialogProps) {
-  const { data: categories = [] } = useGetCategories();
-
-  const parentOptions = useMemo(
-    () => flattenForSelect(categories),
-    [categories],
-  );
-
   const { form, handleSubmit, isPending, resetForm } = useAddCategory({
     onSuccess: () => onOpenChange(false),
   });
@@ -129,13 +106,10 @@ export function CreateCategoryDialog({
             placeholder="Nhóm vật liệu thô dùng trong xây dựng"
           />
 
-          <SelectField
+          <CategorySelectField
             of={form}
             path={["parentId"]}
             label="Danh mục cha"
-            options={parentOptions}
-            transform={(v) => (v === "" ? null : Number(v))}
-            renderValue={(opt) => opt.label.replace(/^[\u00A0]+/, "")}
           />
 
           <SelectField
