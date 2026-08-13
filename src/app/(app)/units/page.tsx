@@ -39,7 +39,8 @@ export default function UnitsPage() {
 
   const totalCount = units.length;
 
-  const { mutate: deleteUnit, isPending: isDeleting } = useDeleteUnit();
+  const { mutateAsync: deleteUnit, isPending: isDeleting } =
+    useDeleteUnit();
 
   const tableColumns = useMemo(
     () =>
@@ -87,8 +88,8 @@ export default function UnitsPage() {
             ""
           )
         }
-        onConfirm={() => {
-          if (deleteTarget) deleteUnit(deleteTarget.id);
+        onConfirm={async () => {
+          if (deleteTarget) await deleteUnit(deleteTarget.id);
         }}
         isPending={isDeleting}
       />

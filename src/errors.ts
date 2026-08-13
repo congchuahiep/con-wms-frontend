@@ -26,12 +26,25 @@ export class AppError extends Error {
   }
 }
 
-export default class DuplicateError extends AppError {
+export class DuplicateError extends AppError {
   public duplicates: string[];
 
   constructor(code = "DUPLICATE_ERROR", message: string, duplicates: string[]) {
     super(code, message, 400, "DuplicateError");
     this.duplicates = duplicates;
+  }
+}
+
+export class BlockProtectedError extends AppError {
+  public blockedBy: string[];
+
+  constructor(
+    code = "BLOCKED_PROTECTED_ERROR",
+    message: string,
+    blockedBy: string[],
+  ) {
+    super(code, message, 409, "BlockProtectedError");
+    this.blockedBy = blockedBy;
   }
 }
 
@@ -69,11 +82,8 @@ export class NotFoundError extends AppError {
 }
 
 export class ConflictError extends AppError {
-  readonly duplicates: string[];
-
-  constructor(message: string, duplicates: string[] = []) {
+  constructor(message: string) {
     super("CONFLICT", message, 409, "ConflictError");
-    this.duplicates = duplicates;
   }
 }
 

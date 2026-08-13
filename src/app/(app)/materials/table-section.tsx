@@ -2,7 +2,7 @@
 
 import type { Table } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/data-table";
-import type { Material } from "@/lib/mock/data";
+import type { Material } from "@/features/material";
 
 interface MaterialsTableSectionProps {
   table: Table<Material>;

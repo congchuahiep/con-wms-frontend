@@ -1,8 +1,10 @@
 import type { AxiosError } from "axios";
-import DuplicateError, {
+import {
   AppError,
   AuthError,
+  BlockProtectedError,
   ConflictError,
+  DuplicateError,
   NetworkError,
   NotFoundError,
   PermissionError,
@@ -12,9 +14,17 @@ import DuplicateError, {
 
 /**
  * Chuyển lỗi axios (đều là any) thành AppError cụ thể.
- * Hỗ trợ cả 2 dạng field errors của Django REST Framework:
- *   - { detail: "..." }                      — lỗi chung
- *   - { email: ["..."], password: ["..."] }  — lỗi per-field
+ *
+ * Hỗ trợ format error response chuẩn hóa từ backend:
+ *   {
+ *     "code": "error_code",     // metadata – mã lỗi
+ *     "detail": "message",      // metadata – thông điệp
+ *     "fields": {               // (chỉ ValidationError) lỗi theo field
+ *       "fieldName": ["error 1", "error 2"]
+ *     }
+ *   }
+ *
+ * Format này tránh collision khi model có field tên `code` hoặc `detail`.
  *
  * Nhận `unknown` để tương thích với neverthrow's ResultAsync.fromPromise,
  * sau đó ép kiểu an toàn sang AxiosError.
@@ -31,15 +41,14 @@ export function classifyError(error: unknown): AppError {
 
   const { status, data } = axiosError.response;
   const payload = data as Record<string, unknown> | undefined;
-  const rawCode = payload?.code;
-  const code =
-    typeof rawCode === "string" && rawCode.length > 0 ? rawCode : undefined;
-  const detail =
-    typeof payload?.detail === "string" ? payload.detail : undefined;
+
+  // Metadata keys – luôn là string ở top-level
+  const code = toStringOrUndefinded(payload?.code);
+  const detail = toStringOrUndefinded(payload?.detail);
 
   switch (status) {
     case 400:
-      return handleBadRequest(payload);
+      return classify400(payload, code, detail);
 
     case 401:
       return new AuthError(code, detail);
@@ -47,73 +56,124 @@ export function classifyError(error: unknown): AppError {
       return new PermissionError(code, detail);
 
     case 404:
-      return new NotFoundError(detail);
+      return new NotFoundError("NOT_FOUND", detail);
 
     case 409:
-      return new ConflictError(detail ?? "Xung đột dữ liệu");
+      return classify409(payload, code, detail);
 
     default:
       if (status >= 500) return new ServerError(detail);
       return new AppError(
+        code ?? "SERVER_ERROR",
         detail ?? "Lỗi không xác định",
-        "SERVER_ERROR",
         status,
         "AppError",
       );
   }
 }
 
+/** Ép unknown → string | undefined an toàn */
+function toStringOrUndefinded(value: unknown): string | undefined {
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
 /**
- * Xử lý lỗi 400 Bad Request
+ * Xử lý lỗi 400 Bad Request.
  *
- * Server có thể trả về 2 dạng:
+ * Backend trả về format:
+ *   {
+ *     "code": "invalid",
+ *     "detail": "Dữ liệu không hợp lệ",
+ *     "fields": {
+ *       "code": ["Mã này đã tồn tại"],
+ *       "name": ["Tên không được để trống"]
+ *     }
+ *   }
  *
- * 1. Lỗi đơn giản (có `detail`):
- *    { "code": "token_not_valid", "detail": "Token không hợp lệ" }
- *
- * 2. Lỗi validation theo field (các field dạng mảng string):
- *    { "code": "invalid", "role": ["Cannot set role to OWNER..."] }
+ * Trong đó `fields` chỉ có mặt khi là ValidationError.
  */
-function handleBadRequest(data?: Record<string, unknown>): AppError {
-  if (!data || typeof data !== "object")
-    return new AppError("Yêu cầu không hợp lệ", "BAD_REQUEST", 400);
-
-  const { code, detail, ...rest } = data;
-  const apiCode = (code as string) ?? "BAD_REQUEST";
-
-  // Trường hợp 2: Các field dạng mảng string → validation error
-  const fieldErrors: Record<string, string[]> = {};
-  for (const [key, value] of Object.entries(rest)) {
-    if (Array.isArray(value) && value.every((v) => typeof v === "string")) {
-      fieldErrors[key] = value as string[];
-    }
+function classify400(
+  data: Record<string, unknown> | undefined,
+  metadataCode: string | undefined,
+  metadataDetail: string | undefined,
+): AppError {
+  if (!data || typeof data !== "object") {
+    return new AppError(
+      metadataCode ?? "BAD_REQUEST",
+      metadataDetail ?? "Yêu cầu không hợp lệ",
+      400,
+    );
   }
 
-  // Trường hợp 3: Trùng lặp (DuplicateError)
+  // Field errors nằm trong key `fields` (format mới, tránh collision)
+  const fields = data.fields;
+  if (isFieldErrorsRecord(fields)) {
+    const message =
+      metadataDetail ??
+      (Object.values(fields).flat()[0] as string) ??
+      "Dữ liệu không hợp lệ";
+
+    return new ValidationError(message, fields);
+  }
+
+  // DuplicateError: mảng `duplicates` ở top-level
   if (Array.isArray(data.duplicates)) {
     return new DuplicateError(
-      apiCode,
-      typeof detail === "string" ? detail : "Một số dữ liệu đã tồn tại",
+      metadataCode ?? "DUPLICATE_ERROR",
+      metadataDetail ?? "Một số dữ liệu đã tồn tại",
       data.duplicates as string[],
     );
   }
 
-  // Có field errors → ValidationError
-  if (Object.keys(fieldErrors).length > 0) {
-    // Lấy message từ detail hoặc từ lỗi đầu tiên
-    const message =
-      typeof detail === "string"
-        ? detail
-        : (Object.values(fieldErrors).flat()[0] ?? "Dữ liệu không hợp lệ");
-
-    return new ValidationError(message, fieldErrors);
+  // Lỗi đơn giản: chỉ có code + detail, không có fields
+  if (metadataDetail) {
+    return new AppError(metadataCode ?? "BAD_REQUEST", metadataDetail, 400);
   }
 
-  // Trường hợp 1: Có `detail` → lỗi đơn giản
-  if (typeof data.detail === "string") {
-    return new AppError(apiCode, data.detail, 400);
+  return new AppError(
+    metadataCode ?? "BAD_REQUEST",
+    "Yêu cầu không hợp lệ",
+    400,
+  );
+}
+
+function classify409(
+  data: Record<string, unknown> | undefined,
+  metadataCode: string | undefined,
+  metadataDetail: string | undefined,
+): AppError {
+  if (!data || typeof data !== "object")
+    return new ConflictError(metadataDetail ?? "Xung đột dữ liệu");
+
+  // DuplicateError
+  if (Array.isArray(data.duplicates)) {
+    return new DuplicateError(
+      metadataCode ?? "DUPLICATE_ERROR",
+      metadataDetail ?? "Một số dữ liệu đã tồn tại",
+      data.duplicates as string[],
+    );
   }
 
-  // Fallback: lỗi 400 không xác định cấu trúc
-  return new AppError(apiCode, "Yêu cầu không hợp lệ", 400);
+  // BlockProtectedError
+  if (Array.isArray(data.blockedBy)) {
+    return new BlockProtectedError(
+      metadataCode ?? "BLOCKED_PROTECTED_ERROR",
+      metadataDetail ?? "Không thể xóa vì một số đối tượng đang tham chiếu nó",
+      data.blockedBy as string[],
+    );
+  }
+
+  return new ConflictError(metadataDetail ?? "Xung đột dữ liệu");
+}
+
+/** Kiểm tra một value có phải là Record<string, string[]> không */
+function isFieldErrorsRecord(
+  value: unknown,
+): value is Record<string, string[]> {
+  if (!value || typeof value !== "object") return false;
+  const entries = Object.entries(value as Record<string, unknown>);
+  if (entries.length === 0) return false;
+  return entries.every(
+    ([, v]) => Array.isArray(v) && v.every((item) => typeof item === "string"),
+  );
 }

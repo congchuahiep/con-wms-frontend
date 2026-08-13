@@ -118,7 +118,7 @@ function EditUnitFormContent({ unit, onClose }: EditUnitFormContentProps) {
     useState<UnitConversion | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UnitConversion | null>(null);
 
-  const { mutate: deleteConversion, isPending: isDeleting } =
+  const { mutateAsync: deleteConversion, isPending: isDeleting } =
     useDeleteConversion();
 
   const conversionColumns = useMemo<ColumnDef<UnitConversion>[]>(
@@ -280,8 +280,8 @@ function EditUnitFormContent({ unit, onClose }: EditUnitFormContentProps) {
             ""
           )
         }
-        onConfirm={() => {
-          if (deleteTarget) deleteConversion(deleteTarget.id);
+        onConfirm={async () => {
+          if (deleteTarget) await deleteConversion(deleteTarget.id);
         }}
         isPending={isDeleting}
       />

@@ -104,7 +104,7 @@ export function CategorySelectField<
             <span
               className={cn(
                 "inline-block rounded-full shrink-0 border",
-                depth === 0 ? "size-2.5" : "size-2",
+                "size-2.5",
                 colorClass,
               )}
             />

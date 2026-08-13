@@ -68,7 +68,8 @@ export default function MaterialCategoryPage() {
 
   const totalCount = useMemo(() => countAllNodes(categories), [categories]);
 
-  const { mutate: deleteCategory, isPending: isDeleting } = useDeleteCategory();
+  const { mutateAsync: deleteCategory, isPending: isDeleting } =
+    useDeleteCategory();
 
   const tableColumns = useMemo(
     () =>
@@ -122,8 +123,8 @@ export default function MaterialCategoryPage() {
             ""
           )
         }
-        onConfirm={() => {
-          if (deleteTarget) deleteCategory(deleteTarget.id);
+        onConfirm={async () => {
+          if (deleteTarget) await deleteCategory(deleteTarget.id);
         }}
         isPending={isDeleting}
       />

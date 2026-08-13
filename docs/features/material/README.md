@@ -23,11 +23,11 @@
 | Query keys | `materialKeys.list()`, `filteredList()`, `detail()` | ✅ Hoàn thành |
 | Shared components | `CategorySelectField`, `UnitSelectField` | ✅ Hoàn thành |
 | UI design | `page-design.md` — mockup, flow, file plan | ✅ Hoàn thành |
-| UI list | Table paginated: Mã, Tên, Danh mục, Đơn vị, Mô tả, Trạng thái | ⬜ Chờ code |
-| UI create | Dialog form với `useAddMaterial` | ⬜ Chờ code |
-| UI edit | Dialog form với `useUpdateMaterial` + pre-fill | ⬜ Chờ code |
-| UI delete | Confirm dialog → `useMutation` DELETE | ⬜ Chờ code |
+| UI list | Table paginated: Mã, Tên, Danh mục, Đơn vị, Mô tả, Trạng thái | ✅ Hoàn thành |
+| UI create | Dialog form với `useAddMaterial` | ✅ Hoàn thành |
+| UI edit | Dialog form với `useUpdateMaterial` + pre-fill | ✅ Hoàn thành |
+| UI delete | Confirm dialog → `useMutation` DELETE | ✅ Hoàn thành |
 
 ## Trạng thái tổng thể
 
-🔵 **Đang thiết kế** — Data layer + Page design hoàn tất, chờ code UI.
+✅ **Hoàn thành** — Data layer + UI, toàn bộ CRUD.

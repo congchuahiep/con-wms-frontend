@@ -41,4 +41,5 @@ export type SimpleMaterialCategory = {
   id: number;
   code: string;
   name: string;
+  color: MaterialCategoryColor | null;
 };

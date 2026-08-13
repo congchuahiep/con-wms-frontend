@@ -10,10 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { materialCategories } from "@/lib/mock/data";
+import { useGetCategories } from "@/features/material-category";
 
 interface MaterialsFilterBarProps {
-  activeCategory: number | null;
+  categoryFilter: number | null;
   onCategoryChange: (id: number | null) => void;
   search: string;
   onSearchChange: (value: string) => void;
@@ -22,24 +22,18 @@ interface MaterialsFilterBarProps {
 const ALL_VALUE = "all";
 
 export function MaterialsFilterBar({
-  activeCategory,
+  categoryFilter,
   onCategoryChange,
   search,
   onSearchChange,
 }: MaterialsFilterBarProps) {
-  const value = activeCategory === null ? ALL_VALUE : String(activeCategory);
+  const { data: categories = [] } = useGetCategories();
+
+  const value = categoryFilter === null ? ALL_VALUE : String(categoryFilter);
 
   const handleValueChange = (next: string | null) => {
     if (next === null) return;
     onCategoryChange(next === ALL_VALUE ? null : Number(next));
-  };
-
-  const selectedLabel = (selectValue: string | null) => {
-    if (selectValue === null || selectValue === ALL_VALUE) {
-      return "Tất cả";
-    }
-    const cat = materialCategories.find((c) => String(c.id) === selectValue);
-    return cat?.name ?? selectValue;
   };
 
   return (
@@ -47,14 +41,14 @@ export function MaterialsFilterBar({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Select value={value} onValueChange={handleValueChange}>
           <SelectTrigger>
-            <HugeiconsIcon icon={Tag02FreeIcons} className="text-red-600" />
+            <HugeiconsIcon icon={Tag02FreeIcons} className="text-muted-foreground" />
             <span className="text-muted-foreground">Danh mục:</span>
-            <SelectValue>{selectedLabel}</SelectValue>
+            <SelectValue placeholder="Tất cả" />
           </SelectTrigger>
 
           <SelectContent alignItemWithTrigger={false}>
             <SelectItem value={ALL_VALUE}>Tất cả</SelectItem>
-            {materialCategories.map((cat) => (
+            {categories.map((cat) => (
               <SelectItem key={cat.id} value={String(cat.id)}>
                 {cat.name}
               </SelectItem>
@@ -69,7 +63,7 @@ export function MaterialsFilterBar({
             className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
           />
           <Input
-            placeholder="Tìm vật tư, SKU..."
+            placeholder="Tìm mã, tên vật tư..."
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-9"

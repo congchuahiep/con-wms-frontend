@@ -11,13 +11,10 @@ import { cn } from "@/lib/utils";
 
 interface MaterialsHeaderProps {
   totalItems: number;
-  totalCategories: number;
+  onAdd: () => void;
 }
 
-export function MaterialsHeader({
-  totalItems,
-  totalCategories,
-}: MaterialsHeaderProps) {
+export function MaterialsHeader({ totalItems, onAdd }: MaterialsHeaderProps) {
   return (
     <header
       className={cn(
@@ -39,7 +36,7 @@ export function MaterialsHeader({
         </div>
         <h1 className="font-semibold tracking-tight">Vật tư</h1>
         <p className="text-sm text-muted-foreground">
-          {totalItems} mặt hàng &middot; {totalCategories} nhóm chính
+          {totalItems} mặt hàng
         </p>
       </div>
 
@@ -52,7 +49,7 @@ export function MaterialsHeader({
           />
           Xuất CSV
         </Button>
-        <Button size="sm" disabled>
+        <Button size="sm" onClick={onAdd}>
           <HugeiconsIcon
             icon={Add01Icon}
             strokeWidth={2}

@@ -48,7 +48,7 @@ export function useAddMaterial(
     initialInput: {
       code: "",
       name: "",
-      categoryId: 0,
+      categoryId: null,
       unitId: 0,
       description: "",
     },

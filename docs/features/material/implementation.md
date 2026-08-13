@@ -27,15 +27,17 @@
 - [x] `src/components/form/CategorySelectField.tsx` — reusable, flatten tree client-side từ `useGetCategories()`, indent `\u00A0\u00A0\u00A0`, kèm dot màu category
 - [x] `src/components/form/UnitSelectField.tsx` — reusable, grouped by `conversionType` dùng `SelectGroup`/`SelectLabel`, hiển thị `code - name`
 
-## Phase 4 — UI (sẽ thiết kế sau bởi `page-design`) ⬜
+## Phase 4 — UI (page) ✅
 
-- [ ] `page.tsx` — container
-- [ ] Table columns: Mã, Tên, Danh mục (badge màu), Đơn vị, Mô tả, Trạng thái
-- [ ] Search bar + filter dropdown (Category)
-- [ ] Pagination
-- [ ] Create dialog — `useAddMaterial()`
-- [ ] Edit dialog — `useUpdateMaterial()` + pre-fill
-- [ ] Delete confirm dialog — `useDeleteMaterial()`
+- [x] `use-material-params.ts` — Custom hook: gom 4 state (search, category, page, pageSize) vào 1 object, auto reset page
+- [x] `columns.tsx` — 7 cột: code, name, category (badge), unit (code - name), description, isActive, actions
+- [x] `create-dialog.tsx` — Dialog + Form + `useAddMaterial` + CategorySelectField + UnitSelectField
+- [x] `edit-dialog.tsx` — Dialog + Form + `useUpdateMaterial` + animation pattern + pre-fill
+- [x] `header.tsx` — Icon + title + stats + onAdd button
+- [x] `filter-bar.tsx` — Category dropdown (useGetCategories) + search input
+- [x] `footer.tsx` — Page info + prev/next pagination
+- [x] `table-section.tsx` — Đổi type sang `@/features/material`
+- [x] `page.tsx` — Container: wire useMaterialParams + useGetMaterials + dialogs + delete confirm
 
 ## Design docs ✅
 

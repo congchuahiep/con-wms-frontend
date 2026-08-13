@@ -116,16 +116,24 @@ function createErrorResponse(
   error: AppError,
   _refreshToken: string | null,
 ): NextResponse {
+  // Tách metadata nội bộ (name, status) và message (đã map thành detail),
+  // giữ lại code + mọi extra field của subclass (fields, blockedBy, duplicates, ...)
+
+  console.error(error);
+
+  const {
+    name: _name,
+    status: _status,
+    message: _message,
+    code: _code,
+    ...extraFields
+  } = error;
+
   const body: Record<string, unknown> = {
     detail: error.message,
     code: error.code,
+    ...extraFields,
   };
-
-  // Bổ sung field errors nếu là ValidationError
-  if (error.name === "ValidationError") {
-    const fields = (error as import("@/errors").ValidationError).fields;
-    Object.assign(body, fields);
-  }
 
   const response = NextResponse.json(body, { status: error.status });
 
