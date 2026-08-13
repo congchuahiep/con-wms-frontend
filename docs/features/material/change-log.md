@@ -1,5 +1,16 @@
 # Change Log — Material
 
+## v1.2 — 2026-08-13
+
+**Hướng A: Material ↔ UnitConversion (nested write) — đã hoàn thành:**
+
+- **API:** `POST/PATCH /api/materials/` nhận `conversions` nested; `GET /api/materials/{id}/` trả `MaterialDetail` kèm `conversions`
+- **Types:** `MaterialConversionInput`, `MaterialConversion`, `MaterialDetail`
+- **Schema:** `MaterialSchema` thêm `conversions: v.array(MaterialConversionSchema)`
+- **Services:** `useGetMaterial(id)` detail hook; `useAddMaterial`/`useUpdateMaterial` strip `conversions` khi unit global
+- **UI:** `conversion-section.tsx` dùng `FieldArray`; create/edit dialog conditional khi `unit.conversionType === "material"`
+- **Quyết định:** PATCH `conversions` = replace toàn bộ (xóa + tạo lại)
+
 ## v1.1 — 2026-08-12
 
 - **Refactor types**: Dùng `Paginated<T>` generic từ `src/types.ts` thay vì `MaterialListResponse` + `PaginatedMeta` riêng

@@ -1,5 +1,20 @@
 # Change Log — Unit
 
+## v3.0 — 2026-08-13
+
+**Thiết kế UnitConversion hỗ trợ `material` (chưa code):**
+
+- **Data model:** `UnitConversion.material` từ `any | null` → `SimpleMaterial | null`
+- **Type mới:** `SimpleMaterial` trong `features/material/types.ts`
+- **Schema tách:** `GlobalConversionSchema` / `MaterialConversionSchema`
+- **Services:** `useAddConversion(unitId, conversionType)` chọn schema theo loại
+- **UI:** Create Dialog thêm `SelectField` vật tư khi `conversionType === "material"`; Edit Dialog hiển thị vật tư read-only
+
+**Context7 validate (Bước 2):**
+
+- Valibot (`/open-circle/valibot`): `v.pipe(v.nullable(v.number()), v.transform(...), v.minValue(...))` pattern confirmed — nullable input → transform → validate output.
+- TanStack Query v5 (`/tanstack/query`): `useQuery` + `useMutation` + `useQueryClient.invalidateQueries` / `setQueryData` pattern confirmed.
+
 ## v1.3 — 2026-08-08
 
 - **UI hoàn thành:** 8 file page (`header`, `filter-bar`, `columns`, `table-section`, `footer`, `create-dialog`, `edit-dialog`, `page.tsx`)

@@ -42,3 +42,28 @@
 ## Design docs ✅
 
 - [x] `README.md`, `data-model.md`, `api-spec.md`, `implementation.md`, `change-log.md`
+
+## Phase 5 — Material ↔ UnitConversion (Hướng A) ✅
+
+> Đã hoàn thành — backend + frontend.
+
+### Backend (con-wms)
+
+- [x] `catalog/serializers.py` — `MaterialSerializer` thêm write-only `conversions` field (`MaterialConversionInputSerializer`)
+- [x] `catalog/serializers.py` — `MaterialDetailSerializer` (retrieve) thêm read-only `conversions`
+- [x] `catalog/serializers.py` — `create()`/`update()` replace conversions trong transaction
+- [x] `catalog/serializers.py` — validate: chỉ cho `conversions` khi `unit.conversion_type === "material"`
+- [x] `catalog/views.py` — `MaterialViewSet.get_serializer_class()` trả `MaterialDetailSerializer` cho `retrieve`
+
+### Frontend data layer (features/material)
+
+- [x] `types.ts` — thêm `MaterialConversionInput`, `MaterialConversion`, `MaterialDetail`
+- [x] `schemas.ts` — `MaterialSchema` thêm `conversions: v.array(MaterialConversionSchema)`
+- [x] `services.ts` — `useAddMaterial`/`useUpdateMaterial` gửi `conversions`; thêm `useGetMaterial(id)` detail hook
+- [x] `endpoints.ts` — thêm `materials.detail(id)`
+
+### Frontend UI (app/(app)/materials)
+
+- [x] `create-dialog.tsx` — thêm `MaterialConversionSection` conditional (watch `unitId` → `conversionType`)
+- [x] `edit-dialog.tsx` — prefill `conversions` từ `useGetMaterial(id)`, thêm `MaterialConversionSection`
+- [x] `conversion-section.tsx` (mới) — `FieldArray` + `insert`/`remove` + `SelectField` toUnit + `InputField` factor

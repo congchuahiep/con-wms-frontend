@@ -63,14 +63,25 @@
     "description": "PCB40, 50kg/bao",
     "isActive": true,
     "createdAt": "2026-08-05T00:00:00Z",
-    "updatedAt": "2026-08-05T00:00:00Z"
+    "updatedAt": "2026-08-05T00:00:00Z",
+    "conversions": [
+        {
+            "id": 1,
+            "toUnit": { "id": 2, "code": "KG", "name": "Kilogram" },
+            "factor": "50"
+        }
+    ]
 }
 ```
+
+> **`conversions`** chỉ có trong detail (không trong list). Chỉ có ý nghĩa khi unit là material-type. Với unit global, mảng rỗng.
+>
+> **Lưu ý:** `Material.unit` chỉ là `SimpleUnit` (`id`, `code`, `name`) — KHÔNG có `conversionType`. Form Material cần gọi `useGetUnits()` (danh sách đầy đủ) để tra `conversionType` của unit được chọn.
 
 ### `POST /api/materials/`
 
 ```json
-// Request
+// Request — unit global (không gửi conversions)
 {
     "code": "XM-HT-PCB40",
     "name": "Xi măng Hà Tiên PCB40",
@@ -79,17 +90,31 @@
     "description": "PCB40, 50kg/bao"
 }
 
-// Response: 201 Created — Material object
+// Request — unit material (gửi kèm conversions)
+{
+    "code": "XM-HT-PCB40",
+    "name": "Xi măng Hà Tiên PCB40",
+    "categoryId": 2,
+    "unitId": 1,
+    "description": "PCB40, 50kg/bao",
+    "conversions": [
+        { "toUnitId": 2, "factor": "50" }
+    ]
+}
+
+// Response: 201 Created — MaterialDetail object (kèm conversions)
 ```
 
 ### `PATCH /api/materials/{id}/`
 
 ```json
-// Request (chỉ gửi dirty fields)
-{ "name": "Tên mới", "unitId": 3 }
+// Request (chỉ gửi dirty fields; conversions gửi cả mảng để replace)
+{ "name": "Tên mới", "conversions": [ { "toUnitId": 2, "factor": "55" } ] }
 
-// Response: 200 — Material object đã cập nhật
+// Response: 200 — MaterialDetail object đã cập nhật
 ```
+
+> **Semantic của `conversions` trong PATCH:** Khi có field `conversions`, backend **replace toàn bộ** quy đổi của material đó (xóa hết + tạo lại). Không merge từng phần.
 
 ### `DELETE /api/materials/{id}/`
 
@@ -97,12 +122,14 @@ Response: `204 No Content`
 
 ## Error responses
 
-| Status | Body                                   | Mô tả                                                                 |
-| ------ | -------------------------------------- | --------------------------------------------------------------------- |
-| 400    | `{ "code": ["Mã vật tư đã tồn tại"] }` | Validation error — `usePost`/`usePartialUpdate` tự map vào form field |
-| 401    | —                                      | Chưa đăng nhập                                                        |
-| 403    | —                                      | Không có quyền (không phải Admin/Storekeeper)                         |
-| 404    | —                                      | Không tìm thấy                                                        |
+| Status | Body | Mô tả |
+| ------ | ---- | ----- |
+| 400    | `{ "code": [...], "detail": "...", "fields": { ... } }` | Validation error — `usePost`/`usePartialUpdate` tự map vào form field |
+| 401    | —    | Chưa đăng nhập |
+| 403    | —    | Không có quyền (không phải Admin/Storekeeper) |
+| 404    | —    | Không tìm thấy |
+
+> Error response format đã chuẩn hóa theo custom DRF exception handler (xem `con-wms/config/exceptions.py`): `code` + `detail` là metadata, field errors nằm trong `fields`.
 
 ## Select box endpoints (external)
 

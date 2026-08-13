@@ -1,226 +1,195 @@
 # UnitConversion — Page Design
 
-> **v2.0** — Quy đổi tích hợp vào Edit Unit Dialog (không expand row)
+> **v3.0** — Hỗ trợ quy đổi theo vật tư (`material`) trong create/edit dialog
 
 ## Bước 0: Xác định loại page
 
-**`dialog`** — Quy đổi hiển thị và quản lý ngay trong Edit Unit Dialog. Không thay đổi bảng Units chính.
-
-**Lý do:** Expand row trong table gây rối thao tác. Edit Dialog là nơi tự nhiên để xem/sửa conversion vì conversion thuộc về 1 unit cụ thể.
+**`dialog`** — Quy đổi hiển thị và quản lý ngay trong Edit Unit Dialog. Không đổi bảng Units chính.
 
 ---
 
 ## Bước 1: Phân tích UX
 
-| # | Câu hỏi | Trả lời |
-|---|---|---|
-| 1 | **Ai dùng?** | Admin + Thủ kho: CRUD conversion. Nhân viên khác: chỉ xem (GET) |
-| 2 | **Cần làm gì?** | Khi edit unit → thấy danh sách quy đổi, thêm/sửa/xoá ngay trong dialog |
-| 3 | **Dữ liệu hiển thị thế nào?** | Bảng nhỏ trong Edit Dialog: Quy đổi \| Hệ số \| Thao tác |
-| 4 | **Có filter/search không?** | Không (≤ 10 conversions) |
-| 5 | **Form create conversion?** | Dialog con mở từ nút [+ Thêm] trong Edit Dialog |
+| #   | Câu hỏi                       | Trả lời                                                                  |
+| --- | ----------------------------- | ------------------------------------------------------------------------ |
+| 1   | **Ai dùng?**                  | Admin + Thủ kho: CRUD conversion. Nhân viên khác: chỉ xem (GET)          |
+| 2   | **Cần làm gì?**               | Xem/sửa quy đổi. Với unit `material` → chọn vật tư khi tạo quy đổi       |
+| 3   | **Dữ liệu hiển thị thế nào?** | Bảng nhỏ trong Edit Dialog: Quy đổi \| Vật tư (nếu material) \| Thao tác |
+| 4   | **Có filter/search không?**   | Không (≤ 10 conversions)                                                 |
+| 5   | **Form create conversion?**   | Dialog con, thêm field vật tư khi `unit.conversionType === "material"`   |
 
 ---
 
 ## Bước 2: Mockup ASCII
 
-### Edit Unit Dialog (có quy đổi)
+### Create Conversion Dialog — Unit `material` (BAO)
+
+```
+┌──────────────────────────────────────────────────────┐
+│  Thêm quy đổi cho đơn vị "Bao"                       │
+│                                                      │
+│  ┌──────┐           ┌──────────────┐                 │
+│  │  1   │ BAO   =   │ 50           │ KG            │  ← factor + toUnit
+│  └──────┘           └──────────────┘                 │
+│                                                      │
+│  Vật tư *                                            │  ← SelectField materialId
+│  ┌──────────────────────────────────────────────┐   │
+│  │ Xi măng Hà Tiên PCB40                    ▾  │   │
+│  └──────────────────────────────────────────────┘   │
+│                                                      │
+│                              [Hủy]  [Thêm quy đổi]    │
+└──────────────────────────────────────────────────────┘
+```
+
+### Create Conversion Dialog — Unit `global` (TAN)
+
+```
+┌──────────────────────────────────────────────────────┐
+│  Thêm quy đổi cho đơn vị "Tấn"                       │
+│                                                      │
+│  ┌──────┐           ┌──────────────┐                 │
+│  │  1   │ TAN   =   │ 1000         │ KG            │  ← chỉ factor + toUnit
+│  └──────┘           └──────────────┘                 │
+│                                                      │
+│  (không có field Vật tư)                             │
+│                                                      │
+│                              [Hủy]  [Thêm quy đổi]    │
+└──────────────────────────────────────────────────────┘
+```
+
+### Edit Conversion Dialog — Unit `material` (BAO)
+
+```
+┌──────────────────────────────────────────────────────┐
+│  Sửa quy đổi                                         │
+│                                                      │
+│  ┌──────┐           ┌──────────────┐                 │
+│  │  1   │ BAO   =   │ 50           │ KG            │  ← chỉ sửa factor
+│  └──────┘           └──────────────┘                 │
+│                                                      │
+│  Vật tư: Xi măng Hà Tiên PCB40   (read-only)         │  ← hiển thị, không edit
+│                                                      │
+│                              [Hủy]  [Lưu thay đổi]    │
+└──────────────────────────────────────────────────────┘
+```
+
+### Edit Unit Dialog — bảng quy đổi (có material)
 
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  Sửa đơn vị tính                                         │
-│  Chỉnh sửa thông tin "Bao"                              │
+│  ... (form code + name + loại quy đổi) ...               │
 │                                                          │
-│  Mã đơn vị *                                             │
+│  ── Quy đổi theo vật tư ─────────────────────────────── │
 │  ┌──────────────────────────────────────────────────┐   │
-│  │ BAO                                              │   │  ← InputField code
+│  │ Quy đổi                        │ Vật tư        │   │
+│  │ 1 BAO = 50 KG                  │ Xi măng HT... │ ✎🗑│   │
+│  │ 1 BAO = 40 KG                  │ Xi măng BS... │ ✎🗑│   │
 │  └──────────────────────────────────────────────────┘   │
-│                                                          │
-│  Tên đơn vị *                                            │
-│  ┌──────────────────────────────────────────────────┐   │
-│  │ Bao                                              │   │  ← InputField name
-│  └──────────────────────────────────────────────────┘   │
-│                                                          │
-│  ── Quy đổi toàn cục ────────────────────────────────── │
-│  ┌──────────────────────────────────────────────────┐   │
-│  │ Quy đổi               │ Hệ số     │              │   │
-│  │ 1 BAO = KG            │ 1000.0000 │    ✏️  🗑️    │   │  ← Bảng conversion
-│  └──────────────────────────────────────────────────┘   │
-│  [+ Thêm quy đổi]                                        │  ← Nút thêm
-│                                                          │
-│                         [Hủy]  [Lưu thay đổi]            │
-└──────────────────────────────────────────────────────────┘
-```
-
-### Edit Dialog (không có quy đổi)
-
-```
-┌──────────────────────────────────────────────────────────┐
-│  ... (form unit như trên) ...                            │
-│                                                          │
-│  ── Quy đổi toàn cục ────────────────────────────────── │
-│                                                          │
-│  Chưa có quy đổi nào                                     │  ← Empty state
 │  [+ Thêm quy đổi]                                        │
+│                                                          │
+│                          [Hủy]  [Lưu thay đổi]            │
 └──────────────────────────────────────────────────────────┘
-```
-
-### Create Unit Dialog — giữ nguyên, không thay đổi
-
-```
-┌─────────────────────────────────────┐
-│  Thêm đơn vị tính                   │
-│  (chỉ code + name, không có quy đổi) │  ← Không đổi
-└─────────────────────────────────────┘
 ```
 
 ---
 
 ## Bước 3: Component Tree + State Flow
 
-### Cấu trúc file
+### Cấu trúc file (không đổi so với v2.0, chỉ sửa nội dung)
 
 ```
 src/app/(app)/units/
-├── page.tsx                    ← KHÔNG đổi (không expand state)
-├── columns.tsx                 ← KHÔNG đổi (không expand button)
-├── edit-dialog.tsx             ← ✏️ SỬA: thêm section quy đổi
-├── create-conversion-dialog.tsx ← ✨ MỚI: Form thêm quy đổi (toàn cục)
-├── edit-conversion-dialog.tsx  ← ✨ MỚI: Form sửa hệ số
+├── edit-dialog.tsx             ← ✏️ SỬA: cột hiển thị material
+├── create-conversion-dialog.tsx ← ✏️ SỬA: thêm SelectField material
+├── edit-conversion-dialog.tsx  ← ✏️ SỬA: hiển thị material read-only
 └── (các file cũ giữ nguyên)
 ```
 
 ```
 src/features/unit-conversion/
-├── types.ts                    ← ✨ MỚI
-├── schemas.ts                  ← ✨ MỚI
-├── services.ts                 ← ✨ MỚI
-└── index.ts                    ← ✨ MỚI
+├── types.ts                    ← ✏️ SỬA: material: SimpleMaterial | null
+├── schemas.ts                  ← ✏️ SỬA: tách 2 schema
+├── services.ts                 ← ✏️ SỬA: useAddConversion nhận conversionType
+└── index.ts                    ← giữ nguyên
 ```
 
-### State flow — Edit Dialog mở rộng
+### State flow — Create Conversion
 
 ```
-EditUnitDialog (sửa từ bản cũ)
-├── props: { unit, onClose }
-├── state nội bộ:
-│   ├── open: boolean                      ← animation control
-│   ├── createConversionOpen: boolean
-│   ├── editingConversion: UnitConversion | null
-│   └── deleteTarget: UnitConversion | null
+CreateConversionDialog (props: { unit })
+├── unit.conversionType === "material"?
+│   ├── true  → render SelectField materialId
+│   │   └── useGetMaterials() → options từ data.items
+│   └── false → không render
 │
-├── DialogContent (luôn render)
-│   └── {unit && <EditUnitFormContent unit={unit} />}
-│       │
-│       ├── Form unit (code + name)        ← giữ nguyên
-│       │
-│       ├── useGetUnitConversions(unit.id) ← ✨ fetch conversions
-│       │   → { globalConversions }
-│       │
-│       ├── Section "Quy đổi toàn cục"
-│       │   ├── Bảng DataTable globalConversions
-│       │   │   └── Cột: Quy đổi | Hệ số | ✏️🗑️
-│       │   └── [+ Thêm quy đổi] button
-│       │
-│       ├── CreateConversionDialog
-│       │   └── props: { unit, open, onClose }
-│       │
-│       ├── EditConversionDialog
-│       │   └── props: { conversion, unitCode, toUnitCode, open, onClose }
-│       │
-│       └── DeleteConfirmDialog
-│           └── useDeleteConversion()
+├── useAddConversion(unit.id, unit.conversionType)
+│   ├── chọn schema (Global | Material)
+│   ├── initialInput (có/không có materialId)
+│   └── submit → POST /units/{id}/conversions/
 ```
 
-### Data flow: Mở Edit Dialog
+### State flow — Edit Conversion
 
 ```
-✏️ click trên row BAO
-  → page.tsx setEditingUnit(unit)
-  → EditUnitDialog mount
-    → useEffect: setOpen(true)
-    → EditUnitFormContent mount (có unit)
-      → useGetUnitConversions(unit.id) fetch
-      → render bảng globalConversions
-```
-
-### Data flow: Thêm quy đổi
-
-```
-[+ Thêm quy đổi] trong Edit Dialog
-  → setCreateConversionOpen(true)
-  → CreateConversionDialog mount
-    → user chọn: toUnitId, factor
-    → submit → useAddConversion(unitId).mutate(data)
-      → onSuccess: invalidate unitConversionKeys.byUnit(unitId)
-      → setCreateConversionOpen(false)
-```
-
-### Data flow: Sửa quy đổi
-
-```
-✏️ click trên row conversion
-  → setEditingConversion(conv)
-  → EditConversionDialog mount
-    → user sửa factor
-    → submit → useUpdateConversion(conv.id).handleSubmit
-      → onSuccess: invalidate
+EditConversionDialog (props: { conversion })
+├── hiển thị factor (sửa được)
+├── hiển thị material (read-only, nếu conversion.material != null)
+└── useUpdateConversion(conversion.id, conversion.isReverse, { factor })
+    → PATCH /unit-conversions/{id}/ (chỉ gửi factor)
 ```
 
 ---
 
 ## Bước 4: Component Selection
 
-### Edit Dialog (mở rộng)
+### Create Conversion Dialog
 
-| UI Element | Component | Ghi chú |
-|---|---|---|
-| Form unit | `InputField` × 2 | code + name (giữ nguyên) |
-| Separator | `<div className="border-t my-4" />` | Ngăn cách form unit và conversion |
-| Section title | `<h3>` + `Button` [+ Thêm] | "Quy đổi toàn cục" |
-| Bảng conversion | `DataTable` | 3 cột: Quy đổi \| Hệ số \| Thao tác |
-| Empty state | `<p className="text-muted-foreground text-sm py-4">` | |
-| Loading | Skeleton/spinner | |
-| Dialog footer | `DialogFooter` + Hủy/Lưu | Giữ nguyên vị trí cuối dialog |
+| UI Element    | Component     | Ghi chú                                                                          |
+| ------------- | ------------- | -------------------------------------------------------------------------------- |
+| Input factor  | `InputField`  | `noField`, trong `ButtonGroup`                                                   |
+| Select toUnit | `SelectField` | options từ `useGetUnits()`                                                       |
+| Select vật tư | `SelectField` | **chỉ khi** `unit.conversionType === "material"`; options từ `useGetMaterials()` |
+| Error display | `FieldError`  | `getErrors(form, { path: ["materialId"] })`                                      |
 
-### Conversion Table Columns
+**Material options:**
 
 ```typescript
-const conversionColumns: ColumnDef<UnitConversion>[] = [
-  {
-    id: "formula",
-    header: "Quy đổi",
-    cell: ({ row }) => (
-      <span>1 {fromUnitCode} = {parseFloat(row.original.factor)} {row.original.toUnit.code}</span>
-    ),
-    size: 300,
-    minSize: 200,
-  },
-  {
-    id: "factor",
-    accessorKey: "factor",
-    header: "Hệ số",
-    cell: ({ getValue }) => <code>{parseFloat(getValue<string>()).toFixed(4)}</code>,
-    size: 100,
-    minSize: 80,
-  },
-  {
-    id: "actions",
-    header: "",
-    minSize: 40,
-    cell: ({ row }) => (
-      <div className="flex justify-end gap-0.5">
-        <Button size="icon-xs" variant="ghost" onClick={() => onEdit(row.original)}>
-          <HugeiconsIcon icon={PencilEdit01Icon} />
-        </Button>
-        <Button size="icon-xs" variant="ghost" onClick={() => onDelete(row.original)}>
-          <HugeiconsIcon icon={Delete02Icon} className="text-destructive" />
-        </Button>
-      </div>
-    ),
-  },
-];
+const { data: materialsData } = useGetMaterials({ pageSize: 100 });
+const materialOptions = useMemo(
+    () =>
+        (materialsData?.items ?? []).map((m) => ({
+            value: String(m.id),
+            label: `${m.name}`,
+        })),
+    [materialsData],
+);
 ```
+
+**Render material selector:**
+
+```tsx
+{
+    unit.conversionType === "material" && (
+        <SelectField
+            of={form}
+            path={["materialId"]}
+            label="Vật tư"
+            options={materialOptions}
+            transform={(v) => (v === "" ? null : Number(v))}
+            placeholder="Chọn vật tư"
+            required
+        />
+    );
+}
+```
+
+### Edit Conversion Dialog
+
+| UI Element         | Component         | Ghi chú                                         |
+| ------------------ | ----------------- | ----------------------------------------------- |
+| Input factor       | `InputField`      | editable, trong `InputGroup`                    |
+| Vật tư (read-only) | `Field` + `Input` | `readOnly`, value = `conversion.material?.name` |
 
 ---
 
@@ -228,10 +197,9 @@ const conversionColumns: ColumnDef<UnitConversion>[] = [
 
 > **Trạng thái:** 🔵 Chờ user duyệt trước khi code
 >
-> **Tổng kết thiết kế v2.0:**
-> - ~~Row expand~~ → **Edit Dialog mở rộng** — gọn, không rối table
-> - Create Dialog: **không đổi** (chỉ code + name)
-> - Edit Dialog: thêm section **Quy đổi toàn cục** + bảng DataTable
-> - Chỉ toàn cục, material scope = backlog
-> - File mới: 5 (data layer unit-conversion + 2 dialog con)
-> - File sửa: 1 (`edit-dialog.tsx` thêm section conversion)
+> **Tổng kết thiết kế v3.0:**
+>
+> - Create Dialog: thêm `SelectField` vật tư khi `conversionType === "material"`
+> - Edit Dialog: hiển thị vật tư read-only (không edit sau tạo)
+> - Bảng quy đổi: hiển thị tên vật tư
+> - Data layer: tách schema + type `SimpleMaterial`

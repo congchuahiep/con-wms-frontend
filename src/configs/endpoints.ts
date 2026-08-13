@@ -54,6 +54,7 @@ export const authEndpoints = {
   materials: {
     list: "/materials/",
     create: "/materials/",
+    detail: (id: number) => `/materials/${id}/`,
     update: (id: number) => `/materials/${id}/`,
     delete: (id: number) => `/materials/${id}/`,
   },

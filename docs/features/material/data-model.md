@@ -36,6 +36,24 @@ export type Material = {
 };
 ```
 
+### `SimpleMaterial` — Nested reference dùng trong `UnitConversion`
+
+| #   | Field  | Type     | Required | Ghi chú      |
+| --- | ------ | -------- | -------- | ------------ |
+| 1   | `id`   | `number` | ✅       | Primary key  |
+| 2   | `code` | `string` | ✅       | Mã định danh |
+| 3   | `name` | `string` | ✅       | Tên hiển thị |
+
+```typescript
+export type SimpleMaterial = {
+    id: number;
+    code: string;
+    name: string;
+};
+```
+
+> `SimpleMaterial` là bản rút gọn của `Material`, dùng làm nested reference trong `UnitConversion.material`. Backend trả về qua `SimpleMaterialSerializer` (chỉ `id`, `code`, `name`).
+
 ### Paginated response — Dùng generic `Paginated<T>` từ `src/types.ts`
 
 ```typescript
@@ -46,13 +64,54 @@ export type Material = {
 
 ### Request type (POST/PATCH body)
 
-| #   | Field         | Type     | Required | Ghi chú               |
-| --- | ------------- | -------- | -------- | --------------------- |
-| 1   | `code`        | `string` | ✅       | Mã định danh (max 30) |
-| 2   | `name`        | `string` | ✅       | Tên hiển thị          |
-| 3   | `categoryId`  | `number` | ✅       | FK → Category         |
-| 4   | `unitId`      | `number` | ✅       | FK → Unit             |
-| 5   | `description` | `string` | —        | Mô tả (default "")    |
+| #   | Field         | Type     | Required | Ghi chú                |
+| --- | ------------- | -------- | -------- | ---------------------- |
+| 1   | `code`        | `string` | ✅       | Mã định danh (max 30)  |
+| 2   | `name`        | `string` | ✅       | Tên hiển thị           |
+| 3   | `categoryId`  | `number` | ✅       | FK → Category          |
+| 4   | `unitId`      | `number` | ✅       | FK → Unit              |
+| 5   | `description` | `string` | —        | Mô tả (default "")     |
+| 6   | `conversions` | `MaterialConversionInput[]` | — | Nested write (chỉ khi `unitId` là material-type) |
+
+### `MaterialConversionInput` — Nested write cho conversion
+
+| #   | Field      | Type                 | Required | Ghi chú                    |
+| --- | ---------- | -------------------- | -------- | -------------------------- |
+| 1   | `toUnitId` | `number \| null`    | ✅       | Đơn vị đích                |
+| 2   | `factor`   | `string`             | ✅       | Hệ số quy đổi (Decimal)     |
+
+```typescript
+export type MaterialConversionInput = {
+    toUnitId: number | null;
+    factor: string;
+};
+```
+
+### `MaterialConversion` — Nested read cho conversion (detail)
+
+| #   | Field    | Type         | Required | Ghi chú        |
+| --- | -------- | ------------ | -------- | -------------- |
+| 1   | `id`     | `number`     | ✅       | Primary key    |
+| 2   | `toUnit` | `SimpleUnit` | ✅       | Đơn vị đích    |
+| 3   | `factor` | `string`     | ✅       | Hệ số quy đổi  |
+
+```typescript
+export type MaterialConversion = {
+    id: number;
+    toUnit: SimpleUnit;
+    factor: string;
+};
+```
+
+### `MaterialDetail` — Response từ `GET /api/materials/{id}/`
+
+```typescript
+export type MaterialDetail = Material & {
+    conversions: MaterialConversion[];
+};
+```
+
+> `conversions` chỉ có ý nghĩa khi `material.unit.conversionType === "material"`. Với unit global, mảng này rỗng.
 
 ## 2. Quan hệ
 
@@ -73,14 +132,18 @@ export type Material = {
 
 ## 4. Quyết định thiết kế
 
-| #   | Quyết định                                               | Lý do                                                                                                                     |
-| --- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| D1  | **Dùng `type` cho data shape**                           | `interface` chỉ cho React component props                                                                                 |
-| D2  | **`category`/`unit` là nested object**                   | API trả về nested reference `{ id, code, name }`                                                                          |
-| D3  | **Dùng `Paginated<T>` generic**                          | Tái sử dụng cho mọi entity paginated, định nghĩa ở `src/types.ts`                                                         |
-| D4  | **POST/PATCH body dùng `categoryId`/`unitId` (flat ID)** | API nhận flat FK, không gửi nested object                                                                                 |
-| D5  | **Update dùng PATCH + `usePartialUpdate`**               | Chỉ gửi dirty fields, tuân thủ convention                                                                                 |
-| D6  | **DELETE trả về `204 No Content`**                       | Mutation trả về `void`                                                                                                    |
-| D7  | **`CategorySelectField` flatten tree client-side**       | Pattern giống `create-dialog.tsx` — dùng `useGetCategories()` tree rồi flatten với indent `\u00A0\u00A0\u00A0` theo depth |
-| D8  | **`UnitSelectField` nhóm theo `conversionType`**         | `"global"` → "Toàn cục", `"material"` → "Theo vật tư"                                                                     |
-| D9  | **Simple type dùng tiền tố `Simple`**                    | `SimpleMaterialCategory` → `material-category/types.ts`, `SimpleUnit` → `unit/types.ts`                                   |
+| #   | Quyết định                                               | Lý do                                                                                                                           |
+| --- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | **Dùng `type` cho data shape**                           | `interface` chỉ cho React component props                                                                                       |
+| D2  | **`category`/`unit` là nested object**                   | API trả về nested reference `{ id, code, name }`                                                                                |
+| D3  | **Dùng `Paginated<T>` generic**                          | Tái sử dụng cho mọi entity paginated, định nghĩa ở `src/types.ts`                                                               |
+| D4  | **POST/PATCH body dùng `categoryId`/`unitId` (flat ID)** | API nhận flat FK, không gửi nested object                                                                                       |
+| D5  | **Update dùng PATCH + `usePartialUpdate`**               | Chỉ gửi dirty fields, tuân thủ convention                                                                                       |
+| D6  | **DELETE trả về `204 No Content`**                       | Mutation trả về `void`                                                                                                          |
+| D7  | **`CategorySelectField` flatten tree client-side**       | Pattern giống `create-dialog.tsx` — dùng `useGetCategories()` tree rồi flatten với indent `\u00A0\u00A0\u00A0` theo depth       |
+| D8  | **`UnitSelectField` nhóm theo `conversionType`**         | `"global"` → "Toàn cục", `"material"` → "Theo vật tư"                                                                           |
+| D9  | **Simple type dùng tiền tố `Simple`**                     | `SimpleMaterialCategory` → `material-category/types.ts`, `SimpleUnit` → `unit/types.ts`, `SimpleMaterial` → `material/types.ts` |
+| D10 | **`SimpleMaterial` chỉ gồm `id`, `code`, `name`**           | Backend `SimpleMaterialSerializer` chỉ trả 3 field này, đủ cho hiển thị trong UnitConversion |
+| D11 | **`conversions` là nested write trong Material form**        | Hướng A: tạo/sửa Material + UnitConversion atomic trong 1 request |
+| D12 | **Write dùng flat `toUnitId`, read dùng nested `toUnit`**   | Nhất quán convention: write flat FK, read nested reference |
+| D13 | **`MaterialDetail` dùng cho detail, `Material` cho list**    | Tránh trả `conversions` trong list (N+1, nặng) — chỉ detail mới có |

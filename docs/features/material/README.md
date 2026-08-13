@@ -27,7 +27,8 @@
 | UI create | Dialog form với `useAddMaterial` | ✅ Hoàn thành |
 | UI edit | Dialog form với `useUpdateMaterial` + pre-fill | ✅ Hoàn thành |
 | UI delete | Confirm dialog → `useMutation` DELETE | ✅ Hoàn thành |
+| Material ↔ UnitConversion | Nested write trong form Material (Hướng A) | ✅ Hoàn thành |
 
 ## Trạng thái tổng thể
 
-✅ **Hoàn thành** — Data layer + UI, toàn bộ CRUD.
+✅ **Hoàn thành** — Data layer + UI + Material ↔ UnitConversion nested write

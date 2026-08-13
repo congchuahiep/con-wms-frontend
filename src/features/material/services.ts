@@ -1,10 +1,11 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { InferOutput } from "valibot";
+import type { InferInput } from "valibot";
 import { authApi } from "@/configs/api";
-import { materialKeys } from "@/configs/querykeys";
+import { materialKeys, unitKeys } from "@/configs/querykeys";
 import type { AppError } from "@/errors";
+import type { Unit } from "@/features/unit";
 import {
   type UsePartialUpdateOptions,
   usePartialUpdate,
@@ -12,13 +13,43 @@ import {
 import { type UsePostOptions, usePost } from "@/hooks/usePost";
 import type { Paginated } from "@/types";
 import { MaterialSchema } from "./schemas";
-import type { Material } from "./types";
+import type { Material, MaterialDetail } from "./types";
 
 export interface GetMaterialsParams {
   search?: string;
   category?: number;
   page?: number;
   pageSize?: number;
+}
+
+/**
+ * Lấy unit type của `unitId` từ React Query cache (đã được `useGetUnits()` populate).
+ * Trả về undefined nếu chưa load được.
+ */
+function getUnitConversionType(
+  queryClient: ReturnType<typeof useQueryClient>,
+  unitId: number,
+): Unit["conversionType"] | undefined {
+  const units = queryClient.getQueryData<Unit[]>(unitKeys.list());
+  return units?.find((u) => u.id === unitId)?.conversionType;
+}
+
+/**
+ * Bỏ `conversions` khỏi payload khi unit không phải material-type.
+ * Backend từ chối `conversions` với unit global.
+ */
+function stripConversionsIfGlobal<T extends object>(
+  data: T,
+  unitType: Unit["conversionType"] | undefined,
+): Record<string, unknown> {
+  if (unitType === "material") {
+    return data as unknown as Record<string, unknown>;
+  }
+
+  const { conversions: _conversions, ...rest } = data as T & {
+    conversions?: unknown;
+  };
+  return rest as Record<string, unknown>;
 }
 
 export function useGetMaterials(params: GetMaterialsParams = {}) {
@@ -28,6 +59,19 @@ export function useGetMaterials(params: GetMaterialsParams = {}) {
       const response = await authApi.get<Paginated<Material>>(
         (ep) => ep.materials.list,
         { params },
+      );
+      return response.data;
+    },
+  });
+}
+
+export function useGetMaterial(id: number, options?: { enabled?: boolean }) {
+  return useQuery<MaterialDetail, AppError>({
+    ...options,
+    queryKey: materialKeys.detail(id),
+    queryFn: async () => {
+      const response = await authApi.get<MaterialDetail>((ep) =>
+        ep.materials.detail(id),
       );
       return response.data;
     },
@@ -51,11 +95,15 @@ export function useAddMaterial(
       categoryId: null,
       unitId: 0,
       description: "",
+      conversions: [],
     },
     mutationFn: async (data) => {
+      const unitType = getUnitConversionType(queryClient, data.unitId);
+      const payload = stripConversionsIfGlobal(data, unitType);
+
       const response = await authApi.post<Material>(
         (ep) => ep.materials.create,
-        data,
+        payload,
       );
       return response.data;
     },
@@ -71,7 +119,7 @@ export function useAddMaterial(
 
 export function useUpdateMaterial(
   id: number,
-  initialInput: Partial<InferOutput<typeof MaterialSchema>>,
+  initialInput: Partial<InferInput<typeof MaterialSchema>>,
   options?: Omit<
     UsePartialUpdateOptions<typeof MaterialSchema, Material, AppError>,
     "schema" | "mutationFn" | "initialInput" | "id"
@@ -85,9 +133,13 @@ export function useUpdateMaterial(
     id,
     initialInput,
     mutationFn: async ({ id, ...data }) => {
+      const effectiveUnitId = data.unitId ?? initialInput.unitId ?? 0;
+      const unitType = getUnitConversionType(queryClient, effectiveUnitId);
+      const payload = stripConversionsIfGlobal(data, unitType);
+
       const response = await authApi.patch<Material>(
         (ep) => ep.materials.update(id as number),
-        data,
+        payload,
       );
       return response.data;
     },
@@ -95,6 +147,9 @@ export function useUpdateMaterial(
       queryClient.invalidateQueries({
         queryKey: materialKeys.list(),
         exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: materialKeys.detail(data.id),
       });
       options?.onSuccess?.(data, ...args);
     },

@@ -1,6 +1,6 @@
 "use client";
 
-import { Form } from "@formisch/react";
+import { Field as FormField, Form } from "@formisch/react";
 import { InputField } from "@/components/form/InputField";
 import { TextareaField } from "@/components/form/TextareaField";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/dialog";
 import { useAddMaterial } from "@/features/material";
 import { CategorySelectField } from "@/features/material-category";
-import { UnitSelectField } from "@/features/unit";
+import { UnitSelectField, useGetUnits } from "@/features/unit";
+import { MaterialConversionSection } from "./conversion-section";
 
 interface CreateMaterialDialogProps {
   open: boolean;
@@ -28,6 +29,7 @@ export function CreateMaterialDialog({
   const { form, handleSubmit, isPending, resetForm } = useAddMaterial({
     onSuccess: () => onOpenChange(false),
   });
+  const { data: units = [] } = useGetUnits();
 
   return (
     <Dialog
@@ -75,6 +77,24 @@ export function CreateMaterialDialog({
             label="Đơn vị tính"
             required
           />
+
+          <FormField of={form} path={["unitId"]}>
+            {(field) => {
+              const selectedUnit = units.find(
+                (u) => u.id === Number(field.input),
+              );
+
+              return selectedUnit?.conversionType === "material" ? (
+                <MaterialConversionSection
+                  form={form}
+                  unit={selectedUnit}
+                  disabled={isPending}
+                />
+              ) : (
+                <></>
+              );
+            }}
+          </FormField>
 
           <TextareaField
             of={form}

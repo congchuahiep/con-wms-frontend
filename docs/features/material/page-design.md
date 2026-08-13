@@ -18,6 +18,7 @@
 | **Hiển thị**         | Table phẳng (không tree), paginated server-side                             |
 | **Filter**           | Search bar (tìm mã/tên) + Category dropdown                                 |
 | **Form**             | Dialog tạo mới + dialog sửa, dùng `CategorySelectField` + `UnitSelectField` |
+| **Quy đổi**          | Khi unit là material-type → form Material hiển thị section quy đổi (nested)  |
 
 ---
 
@@ -67,10 +68,15 @@ MaterialsPage (page.tsx)
 │       ├── InputField: name
 │       ├── CategorySelectField: categoryId
 │       ├── UnitSelectField: unitId
-│       └── TextareaField: description
+│       ├── TextareaField: description
+│       └── ConversionSection (conditional: unit.conversionType === "material")
+│           ├── FieldArray of conversions
+│           │   └── mỗi row: SelectField toUnitId + InputField factor + nút xoá
+│           └── [+ Thêm quy đổi]
 ├── EditMaterialDialog
 │   └── Dialog + Form (useUpdateMaterial, pre-filled)
-│       └── (same fields as create, with initial values)
+│       ├── (same fields as create, with initial values)
+│       └── ConversionSection (pre-filled từ MaterialDetail.conversions)
 └── DeleteConfirmDialog
     └── Confirm delete material
 ```
@@ -242,3 +248,48 @@ export function createColumns({
 | D7  | **Dialog dùng `onOpenChangeComplete`**          | Pattern chuẩn Base UI cho animation, như edit-dialog material-categories                              |
 | D8  | **Edit form dùng Form Pre-fill Pattern**        | Child component `EditMaterialForm` chỉ mount khi `material !== null`                                  |
 | D9  | **Cột mô tả ẩn trên mobile**                    | `hidden sm:table-cell` — giống các page khác                                                          |
+| D10 | **Section quy đổi dùng `FieldArray`**           | Formisch `FieldArray` + `insert`/`remove` cho danh sách `{ toUnitId, factor }` động |
+| D11 | **Watch `unitId` để bật/tắt section quy đổi**   | Dùng `<Field of={form} path={["unitId"]}>` để đọc selected unit, so `conversionType` |
+| D12 | **Edit prefill từ `useGetMaterial(id)` detail** | Detail response có `conversions` (read-only nested) → convert sang `{ toUnitId, factor }` cho form |
+| D13 | **`conversions` gửi cả mảng trong PATCH**       | Backend replace toàn bộ — form giữ state list đầy đủ, không merge |
+
+---
+
+## 10. Conversion Section (Material form)
+
+### Mockup — unit material (BAO)
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  Đơn vị tính *                                            │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │ BAO - Bao (Theo vật tư)                      ▾  │   │
+│  └──────────────────────────────────────────────────┘   │
+│                                                          │
+│  ── Quy đổi theo vật tư ─────────────────────────────── │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │ 1 BAO = [ 50    ] [ KG ▾ ]                [🗑]  │   │
+│  │ 1 BAO = [ 40    ] [ KG ▾ ]                [🗑]  │   │
+│  └──────────────────────────────────────────────────┘   │
+│  [+ Thêm quy đổi]                                        │
+└──────────────────────────────────────────────────────────┘
+```
+
+### State flow
+
+```
+User chọn unitId (material-type)
+  → Field of unitId re-render
+    → selectedUnit.conversionType === "material"
+      → render ConversionSection (FieldArray of conversions)
+
+[+ Thêm quy đổi]
+  → insert(form, { path: ["conversions"], initialInput: { toUnitId: null, factor: "1" } })
+
+[🗑]
+  → remove(form, { path: ["conversions"], at: index })
+
+Submit
+  → useAddMaterial / useUpdateMaterial gửi cả mảng conversions
+  → backend replace (PATCH) hoặc create (POST)
+```

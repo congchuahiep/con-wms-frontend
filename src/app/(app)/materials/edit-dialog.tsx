@@ -1,6 +1,12 @@
 "use client";
 
-import { Form, reset } from "@formisch/react";
+import {
+  Field as FormField,
+  type FormStore,
+  Form,
+  getInput,
+  reset,
+} from "@formisch/react";
 import { useEffect, useState } from "react";
 import { InputField } from "@/components/form/InputField";
 import { TextareaField } from "@/components/form/TextareaField";
@@ -14,11 +20,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "@/components/ui/toast";
 import { ValidationError } from "@/errors";
+import {
+  type MaterialSchema,
+  type Material,
+  type MaterialDetail,
+  useGetMaterial,
+  useUpdateMaterial,
+} from "@/features/material";
 import { CategorySelectField } from "@/features/material-category";
-import { type Material, useUpdateMaterial } from "@/features/material";
-import { UnitSelectField } from "@/features/unit";
+import { UnitSelectField, useGetUnits } from "@/features/unit";
+import { MaterialConversionSection } from "./conversion-section";
 
 interface EditMaterialDialogProps {
   material: Material | null;
@@ -30,6 +44,10 @@ export function EditMaterialDialog({
   onClose,
 }: EditMaterialDialogProps) {
   const [open, setOpen] = useState(false);
+
+  const { data: detail, status } = useGetMaterial(material?.id ?? 0, {
+    enabled: !!material,
+  });
 
   useEffect(() => {
     if (material) setOpen(true);
@@ -44,19 +62,23 @@ export function EditMaterialDialog({
       }}
     >
       <DialogContent>
-        {material && (
+        {material && status === "pending" ? (
+          <div className="flex items-center justify-center py-12">
+            <Spinner className="size-6" />
+          </div>
+        ) : detail ? (
           <EditMaterialFormContent
-            material={material}
+            material={detail}
             onClose={() => setOpen(false)}
           />
-        )}
+        ) : null}
       </DialogContent>
     </Dialog>
   );
 }
 
 interface EditMaterialFormContentProps {
-  material: Material;
+  material: MaterialDetail;
   onClose: () => void;
 }
 
@@ -72,6 +94,10 @@ function EditMaterialFormContent({
       categoryId: material.category.id,
       unitId: material.unit.id,
       description: material.description,
+      conversions: material.conversions.map((conversion) => ({
+        toUnitId: conversion.toUnit.id,
+        factor: conversion.factor,
+      })),
     },
     {
       onSuccess: (data) => {
@@ -86,11 +112,14 @@ function EditMaterialFormContent({
             categoryId: data.category.id,
             unitId: data.unit.id,
             description: data.description,
+            conversions: getInput(form, { path: ["conversions"] }),
           },
         });
       },
     },
   );
+
+  const { data: units = [] } = useGetUnits();
 
   return (
     <>
@@ -135,6 +164,24 @@ function EditMaterialFormContent({
           label="Đơn vị tính"
           required
         />
+
+        <FormField of={form} path={["unitId"]}>
+          {(field) => {
+            const selectedUnit = units.find(
+              (u) => u.id === Number(field.input),
+            );
+
+            return selectedUnit?.conversionType === "material" ? (
+              <MaterialConversionSection
+                form={form as unknown as FormStore<typeof MaterialSchema>}
+                unit={selectedUnit}
+                disabled={isPending}
+              />
+            ) : (
+              <></>
+            );
+          }}
+        </FormField>
 
         <TextareaField
           of={form}
