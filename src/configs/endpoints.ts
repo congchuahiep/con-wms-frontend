@@ -58,6 +58,13 @@ export const authEndpoints = {
     update: (id: number) => `/materials/${id}/`,
     delete: (id: number) => `/materials/${id}/`,
   },
+  suppliers: {
+    list: "/suppliers/",
+    create: "/suppliers/",
+    detail: (id: number) => `/suppliers/${id}/`,
+    update: (id: number) => `/suppliers/${id}/`,
+    delete: (id: number) => `/suppliers/${id}/`,
+  },
 } as const;
 
 /**

@@ -8,6 +8,7 @@ import {
   Logout01Icon,
   Package01Icon,
   TagsIcon,
+  TruckIcon,
   WeightIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -55,6 +56,7 @@ const navItems = [
       { title: "Vật tư", url: "/materials", icon: Package01Icon },
       { title: "Danh mục vật tư", url: "/material-categories", icon: TagsIcon },
       { title: "Đơn vị tính", url: "/units", icon: WeightIcon },
+      { title: "Nhà cung cấp", url: "/suppliers", icon: TruckIcon },
     ],
   },
 ];

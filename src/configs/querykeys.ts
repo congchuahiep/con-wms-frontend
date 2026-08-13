@@ -30,3 +30,10 @@ export const materialKeys = {
   filteredList: (params?: unknown) => [...materialKeys.list(), params] as const,
   detail: (id: number) => [...materialKeys.all, "detail", id] as const,
 };
+
+export const supplierKeys = {
+  all: ["suppliers"] as const,
+  list: () => [...supplierKeys.all, "list"] as const,
+  filteredList: (params?: unknown) => [...supplierKeys.list(), params] as const,
+  detail: (id: number) => [...supplierKeys.all, "detail", id] as const,
+};
