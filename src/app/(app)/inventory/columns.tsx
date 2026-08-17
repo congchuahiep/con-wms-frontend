@@ -1,71 +1,99 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/components/ui/badge";
-import type { InventoryRow } from "@/lib/mock/data";
+import type { StockBalance } from "@/features/stock";
 import { cn } from "@/lib/utils";
+import { formatDecimal } from "@/utils/format";
 
-export const columns: ColumnDef<InventoryRow>[] = [
+export const columns: ColumnDef<StockBalance>[] = [
   {
-    accessorKey: "sku",
-    header: "SKU",
+    id: "code",
+    accessorKey: "material.code",
+    header: "Mã",
     cell: ({ getValue }) => (
       <span className="font-mono text-xs">{getValue<string>()}</span>
     ),
+    size: 120,
+    minSize: 90,
   },
   {
-    accessorKey: "name",
+    id: "name",
+    accessorKey: "material.name",
     header: "Tên vật tư",
     cell: ({ getValue }) => (
       <span className="font-medium">{getValue<string>()}</span>
     ),
+    size: 250,
+    minSize: 180,
   },
   {
-    accessorKey: "category",
-    header: "Danh mục",
-    cell: ({ getValue }) => (
-      <Badge variant="secondary" className="text-xs">
-        {getValue<string>()}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "warehouseName",
+    id: "warehouse",
+    accessorKey: "warehouse.name",
     header: "Kho",
     cell: ({ getValue }) => (
-      <Badge variant="outline" className="text-xs">
-        {getValue<string>()}
-      </Badge>
+      <span className="text-muted-foreground">{getValue<string>()}</span>
     ),
+    size: 180,
+    minSize: 120,
   },
   {
-    accessorKey: "unit",
-    header: "Đơn vị",
-  },
-  {
-    accessorKey: "location",
-    header: "Vị trí",
+    id: "unit",
+    accessorKey: "unit.code",
+    header: "ĐVT",
     cell: ({ getValue }) => (
-      <span className="font-mono text-xs text-muted-foreground">
-        {getValue<string>()}
-      </span>
+      <span className="text-muted-foreground">{getValue<string>()}</span>
     ),
+    size: 80,
+    minSize: 60,
   },
   {
-    accessorKey: "quantity",
+    id: "quantity",
+    accessorFn: (row) => Number(row.quantity),
     header: "Tồn kho",
-    cell: ({ getValue }) => {
-      const qty = getValue<number>();
+    cell: ({ row }) => {
+      const quantity = Number(row.original.quantity);
       return (
         <span
           className={cn(
-            "text-right tabular-nums font-medium",
-            qty < 50 && "text-destructive",
+            "block text-right tabular-nums font-medium",
+            quantity <= 0 && "text-destructive",
           )}
         >
-          {qty.toLocaleString("vi-VN")}
+          {formatDecimal(row.original.quantity)}
         </span>
       );
     },
+    size: 100,
+    minSize: 80,
+  },
+  {
+    id: "lastPurchasePrice",
+    accessorFn: (row) =>
+      row.lastPurchasePrice === null
+        ? Number.NEGATIVE_INFINITY
+        : Number(row.lastPurchasePrice),
+    header: "Giá nhập gần nhất",
+    cell: ({ row }) => (
+      <span className="block text-right tabular-nums">
+        {formatDecimal(row.original.lastPurchasePrice, 2)}
+      </span>
+    ),
+    size: 150,
+    minSize: 110,
+  },
+  {
+    id: "stockValue",
+    accessorFn: (row) =>
+      row.stockValue === null
+        ? Number.NEGATIVE_INFINITY
+        : Number(row.stockValue),
+    header: "Giá trị tồn",
+    cell: ({ row }) => (
+      <span className="block text-right tabular-nums font-medium">
+        {formatDecimal(row.original.stockValue, 2)}
+      </span>
+    ),
+    size: 160,
+    minSize: 120,
   },
 ];

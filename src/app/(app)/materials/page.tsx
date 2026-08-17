@@ -18,9 +18,10 @@ import { MaterialsTableSection } from "./table-section";
 import { useMaterialParams } from "./use-material-params";
 
 export default function MaterialsPage() {
-  const { params, setSearch, setCategory, setPage } = useMaterialParams();
+  const { params, search, setSearch, setCategory, setPage } =
+    useMaterialParams();
 
-  const { data } = useGetMaterials(params);
+  const { data, isFetching, isPlaceholderData } = useGetMaterials(params);
 
   const items = data?.items ?? [];
   const meta = data?.meta;
@@ -33,7 +34,8 @@ export default function MaterialsPage() {
     useDeleteMaterial();
 
   const tableColumns = useMemo(
-    () => createColumns({ onEdit: setEditingMaterial, onDelete: setDeleteTarget }),
+    () =>
+      createColumns({ onEdit: setEditingMaterial, onDelete: setDeleteTarget }),
     [],
   );
 
@@ -52,10 +54,13 @@ export default function MaterialsPage() {
       <MaterialsFilterBar
         categoryFilter={params.category ?? null}
         onCategoryChange={setCategory}
-        search={params.search ?? ""}
+        search={search}
         onSearchChange={setSearch}
       />
-      <MaterialsTableSection table={table} />
+      <MaterialsTableSection
+        table={table}
+        isRefreshing={isFetching && isPlaceholderData}
+      />
       <MaterialsFooter
         page={meta?.page ?? 1}
         pageSize={meta?.pageSize ?? 20}

@@ -6,17 +6,19 @@ import {
   Package01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatDecimal } from "@/utils/format";
 
 interface InventoryHeaderProps {
-  totalItems: number;
-  totalWarehouses: number;
+  totalRows: number;
+  totalValue: number;
 }
 
 export function InventoryHeader({
-  totalItems,
-  totalWarehouses,
+  totalRows,
+  totalValue,
 }: InventoryHeaderProps) {
   return (
     <header
@@ -37,11 +39,9 @@ export function InventoryHeader({
             className="size-5"
           />
         </div>
-        <h1 className="font-semibold tracking-tight">
-          Tồn kho
-        </h1>
+        <h1 className="font-semibold tracking-tight">Tồn kho</h1>
         <p className="text-sm text-muted-foreground">
-          {totalItems} dòng tồn kho &middot; {totalWarehouses} kho
+          {totalRows} dòng tồn kho &middot; {formatDecimal(totalValue, 2)} đ
         </p>
       </div>
       <div className="flex items-center gap-2">
@@ -53,13 +53,22 @@ export function InventoryHeader({
           />
           Xuất CSV
         </Button>
-        <Button size="sm" disabled>
+        <Button
+          size="sm"
+          nativeButton={false}
+          render={
+            <Link
+              href="/inbound-notes"
+              className="inline-flex items-center gap-1.5"
+            />
+          }
+        >
           <HugeiconsIcon
             icon={Add01Icon}
             strokeWidth={2}
             data-icon="inline-start"
           />
-          Nhập kho
+          Lập phiếu nhập
         </Button>
       </div>
     </header>

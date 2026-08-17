@@ -17,3 +17,13 @@ export type Warehouse = {
   createdAt: string;
   updatedAt: string;
 };
+
+/**
+ * Tham chiếu gọn cho nested reference trong response
+ * (vd: StockBalance.warehouse, InboundNote.warehouse)
+ */
+export type SimpleWarehouse = {
+  id: number;
+  code: string;
+  name: string;
+};

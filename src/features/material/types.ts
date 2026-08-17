@@ -30,3 +30,20 @@ export type MaterialConversion = {
 export type MaterialDetail = Material & {
   conversions: MaterialConversion[];
 };
+
+/**
+ * Tham chiếu gọn cho nested reference trong response
+ * (vd: StockBalance.material, InboundNoteLine.material)
+ */
+export type SimpleMaterial = {
+  id: number;
+  code: string;
+  name: string;
+};
+
+export type GetMaterialsParams = {
+  search?: string;
+  category?: number;
+  page?: number;
+  pageSize?: number;
+};

@@ -37,3 +37,19 @@ export const supplierKeys = {
   filteredList: (params?: unknown) => [...supplierKeys.list(), params] as const,
   detail: (id: number) => [...supplierKeys.all, "detail", id] as const,
 };
+
+export const stockKeys = {
+  all: ["stock"] as const,
+  balances: (params?: unknown) =>
+    [...stockKeys.all, "balances", params] as const,
+  movements: (params?: unknown) =>
+    [...stockKeys.all, "movements", params] as const,
+};
+
+export const inboundNoteKeys = {
+  all: ["inbound-notes"] as const,
+  list: () => [...inboundNoteKeys.all, "list"] as const,
+  filteredList: (params?: unknown) =>
+    [...inboundNoteKeys.list(), params] as const,
+  detail: (id: number) => [...inboundNoteKeys.all, "detail", id] as const,
+};

@@ -1,71 +1,69 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useDataTable } from "@/hooks/use-data-table";
 import {
-  inventory,
-  materialCategories,
-  warehouses,
-} from "@/lib/mock/data";
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { useMemo } from "react";
+import { useGetStockBalances } from "@/features/stock";
 import { columns } from "./columns";
 import { InventoryFilterBar } from "./filter-bar";
 import { InventoryFooter } from "./footer";
 import { InventoryHeader } from "./header";
 import { InventoryTableSection } from "./table-section";
-import { InventoryTabs } from "./tabs";
+import { useStockParams } from "./use-stock-params";
 
 export default function InventoryPage() {
-  const [activeTab, setActiveTab] = useState("all");
-  const [activeCategory, setActiveCategory] = useState<number | null>(null);
-  const [activeWarehouse, setActiveWarehouse] = useState<number | null>(null);
+  const {
+    params,
+    search,
+    setSearch,
+    setWarehouse,
+    setCategory,
+    setStockStatus,
+  } = useStockParams();
 
-  const filtered = useMemo(() => {
-    let data = inventory;
+  const {
+    data: items = [],
+    isFetching,
+    isPlaceholderData,
+  } = useGetStockBalances(params);
 
-    if (activeTab === "low") {
-      data = data.filter((m) => m.quantity < 50);
-    } else if (activeTab === "inStock") {
-      data = data.filter((m) => m.quantity >= 50);
-    }
+  const totalValue = useMemo(
+    () =>
+      items.reduce(
+        (sum, item) => sum + (item.stockValue ? Number(item.stockValue) : 0),
+        0,
+      ),
+    [items],
+  );
 
-    if (activeCategory !== null) {
-      const cat = materialCategories.find((c) => c.id === activeCategory);
-      if (cat) {
-        const childNames = new Set(cat.children.map((ch) => ch.name));
-        data = data.filter((m) => childNames.has(m.category));
-      }
-    }
-
-    if (activeWarehouse !== null) {
-      data = data.filter((m) => m.warehouseId === activeWarehouse);
-    }
-
-    return data;
-  }, [activeTab, activeCategory, activeWarehouse]);
-
-  const { table, globalFilter, setGlobalFilter } = useDataTable({
-    data: filtered,
+  const table = useReactTable({
+    data: items,
     columns,
-    pageSize: 25,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
   });
 
   return (
     <div className="flex h-full min-h-0 max-h-full flex-col">
-      <InventoryHeader
-        totalItems={inventory.length}
-        totalWarehouses={warehouses.length}
-      />
-      <InventoryTabs value={activeTab} onChange={setActiveTab} />
+      <InventoryHeader totalRows={items.length} totalValue={totalValue} />
       <InventoryFilterBar
-        activeCategory={activeCategory}
-        onCategoryChange={setActiveCategory}
-        activeWarehouse={activeWarehouse}
-        onWarehouseChange={setActiveWarehouse}
-        search={globalFilter}
-        onSearchChange={setGlobalFilter}
+        categoryFilter={params.category ?? null}
+        onCategoryChange={setCategory}
+        warehouseFilter={params.warehouse ?? null}
+        onWarehouseChange={setWarehouse}
+        stockStatus={params.hasStock ? "inStock" : "all"}
+        onStockStatusChange={setStockStatus}
+        search={search}
+        onSearchChange={setSearch}
       />
-      <InventoryTableSection table={table} />
-      <InventoryFooter table={table} />
+      <InventoryTableSection
+        table={table}
+        isRefreshing={isFetching && isPlaceholderData}
+      />
+      <InventoryFooter totalRows={items.length} totalValue={totalValue} />
     </div>
   );
 }

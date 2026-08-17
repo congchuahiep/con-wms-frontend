@@ -2,9 +2,11 @@
 
 import {
   Archive01Icon,
+  Book01Icon,
   Building02Icon,
   Chart01Icon,
   Home01Icon,
+  Invoice01Icon,
   Logout01Icon,
   Package01Icon,
   TagsIcon,
@@ -47,6 +49,8 @@ const navItems = [
         isWarehouse: true,
       },
       { title: "Tồn kho", url: "/inventory", icon: Archive01Icon },
+      { title: "Sổ kho", url: "/stock-movements", icon: Book01Icon },
+      { title: "Phiếu nhập", url: "/inbound-notes", icon: Invoice01Icon },
       { title: "Báo cáo", url: "/reports", icon: Chart01Icon },
     ],
   },

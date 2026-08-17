@@ -65,6 +65,19 @@ export const authEndpoints = {
     update: (id: number) => `/suppliers/${id}/`,
     delete: (id: number) => `/suppliers/${id}/`,
   },
+  stock: {
+    balances: "/stock/",
+    movements: "/stock/movements/",
+  },
+  inboundNotes: {
+    list: "/inbound-notes/",
+    create: "/inbound-notes/",
+    detail: (id: number) => `/inbound-notes/${id}/`,
+    update: (id: number) => `/inbound-notes/${id}/`,
+    delete: (id: number) => `/inbound-notes/${id}/`,
+    post: (id: number) => `/inbound-notes/${id}/post/`,
+    void: (id: number) => `/inbound-notes/${id}/void/`,
+  },
 } as const;
 
 /**

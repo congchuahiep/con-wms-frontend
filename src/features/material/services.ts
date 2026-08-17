@@ -1,6 +1,11 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type { InferInput } from "valibot";
 import { authApi } from "@/configs/api";
 import { materialKeys, unitKeys } from "@/configs/querykeys";
@@ -13,14 +18,7 @@ import {
 import { type UsePostOptions, usePost } from "@/hooks/usePost";
 import type { Paginated } from "@/types";
 import { MaterialSchema } from "./schemas";
-import type { Material, MaterialDetail } from "./types";
-
-export interface GetMaterialsParams {
-  search?: string;
-  category?: number;
-  page?: number;
-  pageSize?: number;
-}
+import type { GetMaterialsParams, Material, MaterialDetail } from "./types";
 
 /**
  * Lấy unit type của `unitId` từ React Query cache (đã được `useGetUnits()` populate).
@@ -58,10 +56,11 @@ export function useGetMaterials(params: GetMaterialsParams = {}) {
     queryFn: async () => {
       const response = await authApi.get<Paginated<Material>>(
         (ep) => ep.materials.list,
-        { params },
+        { params: params },
       );
       return response.data;
     },
+    placeholderData: keepPreviousData,
   });
 }
 

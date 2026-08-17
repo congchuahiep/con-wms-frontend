@@ -58,3 +58,12 @@ export interface RefreshRequest {
 export interface LogoutRequest {
   refresh: string;
 }
+
+/**
+ * Tham chiếu gọn cho nested reference trong response
+ * (vd: StockMovement.createdBy, InboundNote.voidedBy)
+ */
+export type SimpleUser = {
+  id: number;
+  email: string;
+};

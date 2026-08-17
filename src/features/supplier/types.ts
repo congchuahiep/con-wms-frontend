@@ -24,3 +24,13 @@ export type SupplierInput = {
   address: string;
   note: string;
 };
+
+/**
+ * Tham chiếu gọn cho nested reference trong response
+ * (vd: InboundNote.supplier)
+ */
+export type SimpleSupplier = {
+  id: number;
+  code: string;
+  name: string;
+};
