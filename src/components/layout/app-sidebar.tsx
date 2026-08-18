@@ -50,7 +50,7 @@ const navItems = [
       },
       { title: "Tồn kho", url: "/inventory", icon: Archive01Icon },
       { title: "Sổ kho", url: "/stock-movements", icon: Book01Icon },
-      { title: "Phiếu nhập", url: "/inbound-notes", icon: Invoice01Icon },
+      { title: "Phiếu chứng từ", url: "/notes", icon: Invoice01Icon },
       { title: "Báo cáo", url: "/reports", icon: Chart01Icon },
     ],
   },
