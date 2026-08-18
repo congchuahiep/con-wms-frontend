@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,9 +7,15 @@ import { cn } from "@/lib/utils";
 import { MapProvider } from "@/providers/map-provider";
 import { QueryProvider } from "@/providers/query-provider";
 
-const inter = Inter({
+const geist = Geist({
   subsets: ["latin", "vietnamese"],
   variable: "--font-sans",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -26,7 +32,11 @@ export default function RootLayout({
     <html
       lang="vi"
       suppressHydrationWarning
-      className={cn("h-full font-sans antialiased", inter.variable)}
+      className={cn(
+        "h-full font-sans antialiased",
+        geist.variable,
+        geistMono.variable,
+      )}
     >
       <body className="min-h-full flex flex-col">
         <QueryProvider>

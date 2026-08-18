@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { Row, Table } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import { Fragment, useLayoutEffect, useRef, useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 import {
   TableBody,
   TableCell,
@@ -18,6 +19,8 @@ interface DataTableProps<TData> {
   table: Table<TData>;
   className?: string;
   emptyPlaceholder?: React.ReactNode;
+  /** Hiển thị trạng thái loading thay cho empty placeholder khi chưa có dữ liệu. */
+  isLoading?: boolean;
   showHeader?: boolean;
   /**
    * Header dính khi scroll container (mặc định true).
@@ -37,6 +40,7 @@ export function DataTable<TData>({
   table,
   className,
   emptyPlaceholder,
+  isLoading = false,
   showHeader = true,
   stickyHeader = true,
   renderExpandedRow,
@@ -85,6 +89,8 @@ export function DataTable<TData>({
     observer.observe(table);
     return () => observer.disconnect();
   }, []);
+
+  const hasRows = table.getRowModel().rows.length > 0;
 
   return (
     <div
@@ -158,51 +164,62 @@ export function DataTable<TData>({
           </TableHeader>
         )}
         <TableBody>
-          {table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map((row) => (
-              <Fragment key={row.id}>
-                <TableRow>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="border-r">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                {renderExpandedRow && row.getIsExpanded() && (
+          {hasRows
+            ? table.getRowModel().rows.map((row) => (
+                <Fragment key={row.id}>
                   <TableRow>
-                    <TableCell
-                      colSpan={row.getVisibleCells().length}
-                      className="p-0 border-b bg-muted/50"
-                    >
-                      {renderExpandedRow(row)}
-                    </TableCell>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="border-r">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
                   </TableRow>
-                )}
-              </Fragment>
-            ))
-          ) : (
-            <TableRow>
+                  {renderExpandedRow && row.getIsExpanded() && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={row.getVisibleCells().length}
+                        className="p-0 border-b bg-muted/50"
+                      >
+                        {renderExpandedRow(row)}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Fragment>
+              ))
+            : null}
+
+          {/* Hàng cuối luôn lấp phần còn lại của bảng. Khi không có dữ liệu,
+              chính hàng này hiển thị trạng thái loading/empty ở giữa bảng. */}
+          <TableRow
+            ref={fillerRowRef}
+            aria-hidden={hasRows || undefined}
+            className="hover:bg-transparent"
+            style={{ height: fillerHeight }}
+          >
+            {hasRows ? (
+              table
+                .getAllColumns()
+                .map((column) => (
+                  <TableCell key={column.id} className="border-r" />
+                ))
+            ) : (
               <TableCell
                 colSpan={table.getAllColumns().length}
                 className="h-24 text-center text-muted-foreground"
               >
-                {emptyPlaceholder ?? "Không tìm thấy dữ liệu"}
+                {isLoading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Spinner className="size-4" />
+                    Đang tải...
+                  </span>
+                ) : (
+                  (emptyPlaceholder ?? "Không tìm thấy dữ liệu")
+                )}
               </TableCell>
-            </TableRow>
-          )}
-
-          <TableRow
-            ref={fillerRowRef}
-            aria-hidden
-            className="hover:bg-transparent"
-            style={{ height: fillerHeight }}
-          >
-            {table.getAllColumns().map((column) => (
-              <TableCell key={column.id} className="border-r" />
-            ))}
+            )}
           </TableRow>
         </TableBody>
       </table>

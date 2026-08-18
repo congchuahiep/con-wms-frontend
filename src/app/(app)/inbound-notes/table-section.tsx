@@ -9,6 +9,8 @@ interface InboundNotesTableSectionProps {
   table: Table<InboundNote>;
   /** Đang fetch dữ liệu mới trong khi vẫn hiển thị data cũ (placeholder). */
   isRefreshing?: boolean;
+  /** Đang fetch lần đầu, chưa có dữ liệu để hiển thị. */
+  isLoading?: boolean;
   /** Nội dung mở rộng dưới mỗi row (chi tiết phiếu). */
   renderExpandedRow?: (row: Row<InboundNote>) => React.ReactNode;
 }
@@ -16,6 +18,7 @@ interface InboundNotesTableSectionProps {
 export function InboundNotesTableSection({
   table,
   isRefreshing = false,
+  isLoading = false,
   renderExpandedRow,
 }: InboundNotesTableSectionProps) {
   return (
@@ -25,6 +28,7 @@ export function InboundNotesTableSection({
         isRefreshing && "opacity-60",
       )}
       table={table}
+      isLoading={isLoading}
       emptyPlaceholder="Chưa có phiếu nhập nào"
       renderExpandedRow={renderExpandedRow}
     />

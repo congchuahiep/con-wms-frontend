@@ -38,6 +38,10 @@ function toSimpleMaterial(m: {
   return { id: m.id, code: m.code, name: m.name };
 }
 
+function formatMaterialLabel(m: { code: string; name: string }): string {
+  return m.name;
+}
+
 interface MaterialComboboxProps {
   value: number | null;
   onChange: (id: number | null) => void;
@@ -62,18 +66,39 @@ export function MaterialCombobox({
   className,
   initialItems,
 }: MaterialComboboxProps) {
-  const [inputValue, setInputValue] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleInputChange = (next: string) => {
-    setInputValue(next);
+  const scheduleSearch = (next: string) => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(
       () => setDebouncedSearch(next),
       DEBOUNCE_MS,
     );
+  };
+
+  const cancelSearch = () => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+      debounceTimer.current = null;
+    }
+  };
+
+  // Base UI gọi onInputValueChange cho CẢ thay đổi do gõ phím lẫn thay đổi
+  // programmatic (tự điền label sau khi chọn item, clear khi đóng popup...).
+  // Chỉ trigger search khi reason là "input-change" — nếu không, label vừa
+  // điền sẽ bị debounce thành query rác, làm item vừa chọn biến mất khỏi
+  // danh sách và input nhảy qua lại giữa "đã chọn" / "chưa chọn".
+  const handleInputValueChange = (
+    next: string,
+    eventDetails: { reason?: string },
+  ) => {
+    if (eventDetails.reason === "input-change") {
+      scheduleSearch(next);
+    } else {
+      cancelSearch();
+    }
   };
 
   useEffect(() => {
@@ -109,21 +134,23 @@ export function MaterialCombobox({
     <Combobox<SimpleMaterial>
       items={items}
       value={selected}
+      itemToStringLabel={formatMaterialLabel}
+      filter={null}
       onValueChange={(item) => {
         onChange(item ? item.id : null);
-        setInputValue("");
         setDebouncedSearch("");
+        cancelSearch();
       }}
-      onInputValueChange={handleInputChange}
+      onInputValueChange={handleInputValueChange}
     >
       <ComboboxInput
         showTrigger={false}
         className={cn("w-full", className)}
-        value={selected ? `${selected.code} - ${selected.name}` : inputValue}
-        onChange={(event) => handleInputChange(event.target.value)}
-        onFocus={() => {
-          if (selected) setInputValue("");
-        }}
+        // Không control value của input: để Base UI tự quản lý text (gõ phím,
+        // IME, tự điền label sau khi chọn). Select-all khi focus để gõ là thay
+        // thế label, không nối vào đuôi label cũ.
+        onFocus={(event) => event.currentTarget.select()}
+        onMouseUp={(event) => event.preventDefault()}
         placeholder={placeholder}
         disabled={disabled}
         aria-invalid={invalid || undefined}
@@ -141,14 +168,14 @@ export function MaterialCombobox({
         </InputGroupAddon>
       </ComboboxInput>
 
-      <ComboboxContent sideOffset={4}>
+      <ComboboxContent sideOffset={4} className="w-xs">
         <ComboboxEmpty>
           {isFetching ? "Đang tìm..." : "Không tìm thấy vật tư"}
         </ComboboxEmpty>
         <ComboboxList>
           {(item: SimpleMaterial) => (
             <ComboboxItem key={item.id} value={item}>
-              <span className="font-mono text-xs">{item.code}</span>
+              <code>{item.code}</code>
               <span className="truncate text-muted-foreground">
                 {item.name}
               </span>
@@ -176,7 +203,7 @@ type MaterialSelectFieldProps<
 };
 
 /** Phiên bản Formisch field của MaterialCombobox — dùng trong form (of + path). */
-export function MaterialSelectField<
+export function MaterialComboboxField<
   TSchema extends FormSchema = FormSchema,
   TFieldPath extends RequiredPath = RequiredPath,
 >(props: MaterialSelectFieldProps<TSchema, TFieldPath>) {

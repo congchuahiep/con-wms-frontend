@@ -30,7 +30,7 @@ import type {
 } from "@/features/inbound-note";
 import {
   type Material,
-  MaterialSelectField,
+  MaterialComboboxField,
   type SimpleMaterial,
 } from "@/features/material";
 import { SupplierSelectField } from "@/features/supplier";
@@ -146,7 +146,6 @@ export function NoteForm({
                     </span>
                     <ButtonGroup>
                       <Button
-                        size="sm"
                         variant={
                           noteType === "purchase" ? "default" : "outline"
                         }
@@ -158,7 +157,6 @@ export function NoteForm({
                         Nhập mua
                       </Button>
                       <Button
-                        size="sm"
                         variant={
                           noteType === "return_from_site"
                             ? "default"
@@ -215,37 +213,6 @@ export function NoteForm({
       </FormField>
 
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <HugeiconsIcon
-              icon={ScanIcon}
-              strokeWidth={2}
-              className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              placeholder="Quét mã / SKU (Enter để thêm dòng)"
-              value={scanValue}
-              onChange={(e) => setScanValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  void handleScan(scanValue);
-                }
-              }}
-              className="pl-9 font-mono"
-              disabled={isPending}
-            />
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => void handleScan(scanValue)}
-            disabled={isPending || !scanValue.trim()}
-          >
-            Thêm
-          </Button>
-        </div>
-
         <FormField of={form} path={["lines"]}>
           {(linesField) => {
             const lines = (linesField.input ?? []) as LineItem[];
@@ -264,7 +231,38 @@ export function NoteForm({
 
             return (
               <Card>
-                <CardContent>
+                <CardContent className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <HugeiconsIcon
+                        icon={ScanIcon}
+                        strokeWidth={2}
+                        className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                      />
+                      <Input
+                        placeholder="Quét mã / SKU (Enter để thêm dòng)"
+                        value={scanValue}
+                        onChange={(e) => setScanValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            void handleScan(scanValue);
+                          }
+                        }}
+                        className="pl-9 font-mono"
+                        disabled={isPending}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => void handleScan(scanValue)}
+                      disabled={isPending || !scanValue.trim()}
+                    >
+                      Thêm
+                    </Button>
+                  </div>
+
                   {lines.length > 0 && (
                     <div className="grid grid-cols-[1fr_90px_120px_32px] items-center text-xs text-muted-foreground text-start *:pl-1">
                       <span>Vật tư *</span>
@@ -278,7 +276,7 @@ export function NoteForm({
                       key={linesFieldArray.items[index] ?? index}
                       className="grid grid-cols-[1fr_90px_120px_32px] w-full"
                     >
-                      <MaterialSelectField
+                      <MaterialComboboxField
                         of={form}
                         path={["lines", index, "materialId"]}
                         placeholder="Chọn vật tư"

@@ -96,6 +96,7 @@ export default function InboundNotesPage() {
       <InboundNotesTableSection
         table={table}
         isRefreshing={isFetching && isPlaceholderData}
+        isLoading={isFetching && !data}
         renderExpandedRow={(row) => (
           <InboundNoteDetailExpanded noteId={row.original.id} />
         )}
@@ -130,7 +131,7 @@ export default function InboundNotesPage() {
         description={
           finalizingNote ? (
             <>
-              Chốt phiếu <strong>{finalizingNote.number}</strong>? Sau khi chốt,
+              Chốt phiếu <code>{finalizingNote.number}</code>? Sau khi chốt,
               phiếu <strong>không thể sửa/xóa</strong> — sai sót phải hủy phiếu
               và lập lại. Tồn kho sẽ tăng ngay lập tức.
             </>

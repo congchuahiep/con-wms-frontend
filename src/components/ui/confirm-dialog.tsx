@@ -28,8 +28,6 @@ interface ConfirmDialogProps {
 
 /**
  * Dialog xác nhận generic (chốt phiếu, xóa, ...).
- * Tự quản lý animation: `onOpenChangeComplete` chỉ gọi `onOpenChange(false)`
- * sau khi animation đóng hoàn tất — không dùng setTimeout.
  */
 export function ConfirmDialog({
   open: externalOpen,

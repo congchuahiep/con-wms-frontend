@@ -89,7 +89,13 @@ export function useAddInboundNote(
       warehouseId: null,
       supplierId: null,
       note: "",
-      lines: [],
+      lines: [
+        {
+          materialId: null,
+          quantity: "0",
+          note: "",
+        },
+      ],
     },
     mutationFn: async (data) => {
       const response = await authApi.post<InboundNoteDetail>(

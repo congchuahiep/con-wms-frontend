@@ -24,6 +24,7 @@ import {
   type InboundNote,
 } from "@/features/inbound-note";
 import { getInboundNoteTypeColorClass } from "@/features/stock";
+import type { SimpleSupplier } from "@/features/supplier";
 import { cn } from "@/lib/utils";
 import { formatDate, formatDecimal } from "@/utils/format";
 
@@ -118,12 +119,12 @@ export function createColumns({
     },
     {
       id: "supplier",
-      accessorKey: "supplier.name",
+      accessorKey: "supplier",
       header: "NCC",
       cell: ({ getValue }) => {
-        const name = getValue<string | null>();
-        return name ? (
-          <span className="whitespace-normal">{name}</span>
+        const supplier = getValue<SimpleSupplier | null>();
+        return supplier ? (
+          <span className="whitespace-normal">{supplier.name}</span>
         ) : (
           <span className="text-muted-foreground italic">Không có</span>
         );
@@ -190,13 +191,19 @@ export function createColumns({
         const note = row.original;
         const isDraft = note.status === "draft";
         const isPosted = note.status === "posted";
+        const isVoided = note.status === "voided";
 
         return (
           <div className="flex justify-end">
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
-                  <Button size="icon-xs" variant="ghost" aria-label="Thao tác">
+                  <Button
+                    size="icon-xs"
+                    variant="ghost"
+                    aria-label="Thao tác"
+                    disabled={isVoided}
+                  >
                     <HugeiconsIcon
                       icon={MoreVerticalIcon}
                       strokeWidth={2}
@@ -205,7 +212,7 @@ export function createColumns({
                   </Button>
                 }
               />
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-3xs">
                 {isDraft && (
                   <DropdownMenuItem onClick={() => onEdit(note)}>
                     <HugeiconsIcon icon={PencilEdit01Icon} strokeWidth={2} />
@@ -213,7 +220,10 @@ export function createColumns({
                   </DropdownMenuItem>
                 )}
                 {isDraft && (
-                  <DropdownMenuItem onClick={() => onFinalize(note)}>
+                  <DropdownMenuItem
+                    variant="success"
+                    onClick={() => onFinalize(note)}
+                  >
                     <HugeiconsIcon
                       icon={CheckmarkBadge01Icon}
                       strokeWidth={2}

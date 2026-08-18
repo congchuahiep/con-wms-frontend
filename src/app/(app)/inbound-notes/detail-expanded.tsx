@@ -56,7 +56,7 @@ const LINE_COLUMNS: ColumnDef<InboundNoteLine>[] = [
     header: "Vật tư",
     cell: ({ row }) => (
       <span>
-        <span className="font-mono text-xs">{row.original.material.code}</span>{" "}
+        <code>{row.original.material.code}</code>{" "}
         <span className="text-muted-foreground">
           {row.original.material.name}
         </span>
@@ -124,6 +124,21 @@ function DetailContent({ note }: { note: InboundNoteDetail }) {
 
   return (
     <div className="ml-10 border-l bg-background">
+      {note.status === "voided" && (
+        <div className="p-2 pb-0">
+          <Alert>
+            <div className="text-sm">
+              <p className="font-medium">Phiếu đã bị hủy</p>
+              <p className="mt-1">
+                Lý do: {note.voidReason || "-"}
+                {note.voidedBy && <> · bởi {note.voidedBy.email}</>}
+                {note.voidedAt && <> · {formatDateTime(note.voidedAt)}</>}
+              </p>
+            </div>
+          </Alert>
+        </div>
+      )}
+
       <div className="border-b p-2">
         <InfoItem label="Ghi chú:" value={note.note || "-"} />
       </div>
@@ -133,19 +148,6 @@ function DetailContent({ note }: { note: InboundNoteDetail }) {
         stickyHeader={false}
         emptyPlaceholder="Không có dòng vật tư"
       />
-
-      {note.status === "voided" && (
-        <Alert>
-          <div className="text-sm">
-            <p className="font-medium">Phiếu đã bị hủy</p>
-            <p className="mt-1">
-              Lý do: {note.voidReason || "-"}
-              {note.voidedBy && <> · bởi {note.voidedBy.email}</>}
-              {note.voidedAt && <> · {formatDateTime(note.voidedAt)}</>}
-            </p>
-          </div>
-        </Alert>
-      )}
     </div>
   );
 }
