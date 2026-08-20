@@ -25,16 +25,16 @@ import { useGetSuppliers } from "@/features/supplier";
 import { useGetWarehouses } from "@/features/warehouse";
 
 interface InboundNotesFilterBarProps {
-  noteTypeFilter: InboundNoteType | null;
-  onNoteTypeChange: (type: InboundNoteType | null) => void;
-  warehouseFilter: number | null;
-  onWarehouseChange: (id: number | null) => void;
-  supplierFilter: number | null;
-  onSupplierChange: (id: number | null) => void;
+  noteTypeFilter?: InboundNoteType;
+  onNoteTypeChange: (type?: InboundNoteType) => void;
+  warehouseFilter?: number;
+  onWarehouseChange: (id?: number) => void;
+  supplierFilter?: number;
+  onSupplierChange: (id?: number) => void;
   dateFrom: string;
-  onDateFromChange: (date: string | null) => void;
+  onDateFromChange: (date?: string) => void;
   dateTo: string;
-  onDateToChange: (date: string | null) => void;
+  onDateToChange: (date?: string) => void;
   search: string;
   onSearchChange: (value: string) => void;
 }
@@ -77,7 +77,7 @@ export function InboundNotesFilterBar({
             onValueChange={(next) => {
               if (next === null) return;
               onNoteTypeChange(
-                next === ALL_VALUE ? null : (next as InboundNoteType),
+                next === ALL_VALUE ? undefined : (next as InboundNoteType),
               );
             }}
           >
@@ -102,11 +102,13 @@ export function InboundNotesFilterBar({
 
           <Select
             value={
-              warehouseFilter === null ? ALL_VALUE : String(warehouseFilter)
+              warehouseFilter === undefined
+                ? ALL_VALUE
+                : String(warehouseFilter)
             }
             onValueChange={(next) => {
               if (next === null) return;
-              onWarehouseChange(next === ALL_VALUE ? null : Number(next));
+              onWarehouseChange(next === ALL_VALUE ? undefined : Number(next));
             }}
           >
             <SelectTrigger>
@@ -136,10 +138,12 @@ export function InboundNotesFilterBar({
           </Select>
 
           <Select
-            value={supplierFilter === null ? ALL_VALUE : String(supplierFilter)}
+            value={
+              supplierFilter === undefined ? ALL_VALUE : String(supplierFilter)
+            }
             onValueChange={(next) => {
               if (next === null) return;
-              onSupplierChange(next === ALL_VALUE ? null : Number(next));
+              onSupplierChange(next === ALL_VALUE ? undefined : Number(next));
             }}
           >
             <SelectTrigger>
@@ -172,7 +176,7 @@ export function InboundNotesFilterBar({
           <ButtonGroup>
             <DatePicker
               value={dateFrom || null}
-              onChange={onDateFromChange}
+              onChange={(date) => onDateFromChange(date ?? undefined)}
               placeholder="Từ ngày"
             />
 
@@ -182,7 +186,7 @@ export function InboundNotesFilterBar({
 
             <DatePicker
               value={dateTo || null}
-              onChange={onDateToChange}
+              onChange={(date) => onDateToChange(date ?? undefined)}
               placeholder="Đến ngày"
             />
           </ButtonGroup>

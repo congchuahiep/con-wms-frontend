@@ -81,11 +81,11 @@ export default function InboundNotesPage() {
         onStatusChange={(status) => setStatus(status as InboundNoteStatus)}
       />
       <InboundNotesFilterBar
-        noteTypeFilter={params.noteType ?? null}
+        noteTypeFilter={params.noteType}
         onNoteTypeChange={setNoteType}
-        warehouseFilter={params.warehouse ?? null}
+        warehouseFilter={params.warehouse}
         onWarehouseChange={setWarehouse}
-        supplierFilter={params.supplier ?? null}
+        supplierFilter={params.supplier}
         onSupplierChange={setSupplier}
         dateFrom={params.dateFrom ?? ""}
         onDateFromChange={setDateFrom}

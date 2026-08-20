@@ -20,34 +20,14 @@ import type {
 } from "./types";
 import { getTodayDateString } from "./utils";
 
-/**
- * Chuẩn hoá params thành object có shape + thứ tự key cố định để query
- * key của React Query luôn ổn định với cùng một bộ lọc.
- */
-function normalizeParams(params: GetInboundNotesParams) {
-  return {
-    noteType: params.noteType ?? null,
-    status: params.status ?? null,
-    warehouse: params.warehouse ?? null,
-    supplier: params.supplier ?? null,
-    dateFrom: params.dateFrom ?? null,
-    dateTo: params.dateTo ?? null,
-    search: params.search ?? "",
-    page: params.page ?? 1,
-    pageSize: params.pageSize ?? 20,
-  };
-}
-
 // GET list — phân trang, không kèm lines
 export function useGetInboundNotes(params: GetInboundNotesParams = {}) {
-  const normalizedParams = normalizeParams(params);
-
   return useQuery<Paginated<InboundNote>, AppError>({
-    queryKey: inboundNoteKeys.filteredList(normalizedParams),
+    queryKey: inboundNoteKeys.filteredList(params),
     queryFn: async ({ signal }) => {
       const response = await authApi.get<Paginated<InboundNote>>(
         (ep) => ep.inboundNotes.list,
-        { params: normalizedParams, signal },
+        { params: params, signal },
       );
       return response.data;
     },

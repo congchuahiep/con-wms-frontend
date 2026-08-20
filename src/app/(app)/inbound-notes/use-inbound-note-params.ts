@@ -13,12 +13,12 @@ interface InboundNoteParamsState {
   params: GetInboundNotesParams;
   /** Giá trị search tức thời (chưa debounce) — dùng làm value cho ô input. */
   search: string;
-  setStatus: (status: InboundNoteStatus | null) => void;
-  setNoteType: (type: InboundNoteType | null) => void;
-  setWarehouse: (warehouse: number | null) => void;
-  setSupplier: (supplier: number | null) => void;
-  setDateFrom: (date: string | null) => void;
-  setDateTo: (date: string | null) => void;
+  setStatus: (status: InboundNoteStatus | undefined) => void;
+  setNoteType: (type: InboundNoteType | undefined) => void;
+  setWarehouse: (warehouse: number | undefined) => void;
+  setSupplier: (supplier: number | undefined) => void;
+  setDateFrom: (date: string | undefined) => void;
+  setDateTo: (date: string | undefined) => void;
   setSearch: (search: string) => void;
   setPage: (page: number) => void;
 }
@@ -35,12 +35,14 @@ interface InboundNoteParamsState {
 export function useInboundNoteParams(): InboundNoteParamsState {
   const [search, setSearchState] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [status, setStatusState] = useState<InboundNoteStatus | null>(null);
-  const [noteType, setNoteTypeState] = useState<InboundNoteType | null>(null);
-  const [warehouse, setWarehouseState] = useState<number | null>(null);
-  const [supplier, setSupplierState] = useState<number | null>(null);
-  const [dateFrom, setDateFromState] = useState<string | null>(null);
-  const [dateTo, setDateToState] = useState<string | null>(null);
+  const [status, setStatusState] = useState<InboundNoteStatus | undefined>();
+  const [noteType, setNoteTypeState] = useState<InboundNoteType | undefined>(
+    undefined,
+  );
+  const [warehouse, setWarehouseState] = useState<number | undefined>();
+  const [supplier, setSupplierState] = useState<number | undefined>(undefined);
+  const [dateFrom, setDateFromState] = useState<string | undefined>(undefined);
+  const [dateTo, setDateToState] = useState<string | undefined>(undefined);
   const [page, setPageState] = useState(1);
 
   useEffect(() => {
@@ -56,32 +58,32 @@ export function useInboundNoteParams(): InboundNoteParamsState {
     setPageState(1);
   }, []);
 
-  const setStatus = useCallback((next: InboundNoteStatus | null) => {
+  const setStatus = useCallback((next: InboundNoteStatus | undefined) => {
     setStatusState(next);
     setPageState(1);
   }, []);
 
-  const setNoteType = useCallback((next: InboundNoteType | null) => {
+  const setNoteType = useCallback((next: InboundNoteType | undefined) => {
     setNoteTypeState(next);
     setPageState(1);
   }, []);
 
-  const setWarehouse = useCallback((next: number | null) => {
+  const setWarehouse = useCallback((next: number | undefined) => {
     setWarehouseState(next);
     setPageState(1);
   }, []);
 
-  const setSupplier = useCallback((next: number | null) => {
+  const setSupplier = useCallback((next: number | undefined) => {
     setSupplierState(next);
     setPageState(1);
   }, []);
 
-  const setDateFrom = useCallback((next: string | null) => {
+  const setDateFrom = useCallback((next: string | undefined) => {
     setDateFromState(next);
     setPageState(1);
   }, []);
 
-  const setDateTo = useCallback((next: string | null) => {
+  const setDateTo = useCallback((next: string | undefined) => {
     setDateToState(next);
     setPageState(1);
   }, []);

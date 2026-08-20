@@ -45,7 +45,7 @@ export function EditInboundNoteDialog({
         if (!next) onClose();
       }}
     >
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="w-3xl">
         <DialogHeader>
           <DialogTitle>Sửa phiếu {note?.number ?? ""}</DialogTitle>
           <DialogDescription>
