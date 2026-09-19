@@ -5,6 +5,7 @@ import { cookieConfig, cookieNames } from "@/configs/cookie";
 import { env } from "@/configs/env";
 import type { AppError } from "@/errors";
 import { getValidToken } from "@/features/auth/server";
+import type { TokenPair } from "@/features/auth/types";
 import { classifyError } from "@/utils/classify-error";
 
 /**
@@ -108,13 +109,18 @@ export async function ALL(
       return nextResponse;
     },
     (error: AppError) =>
-      createErrorResponse(error, isTokenRefreshed ? refreshToken : null),
+      createErrorResponse(
+        error,
+        isTokenRefreshed
+          ? { access: accessToken, refresh: refreshToken }
+          : null,
+      ),
   );
 }
 
 function createErrorResponse(
   error: AppError,
-  _refreshToken: string | null,
+  tokenPair: TokenPair | null,
 ): NextResponse {
   // Tách metadata nội bộ (name, status) và message (đã map thành detail),
   // giữ lại code + mọi extra field của subclass (fields, blockedBy, duplicates, ...)
@@ -137,8 +143,22 @@ function createErrorResponse(
 
   const response = NextResponse.json(body, { status: error.status });
 
-  // Nếu là AuthError (token hết hạn, refresh thất bại) → xóa cookie
-  if (error.name === "AuthError") {
+  // Vừa refresh xong (rotation) → bắt buộc lưu access + refresh mới, dù request
+  // chính fail: refresh cũ đã bị backend blacklist, nếu không lưu thì request
+  // sau dùng refresh cũ → refresh fail → buộc đăng nhập lại.
+  if (tokenPair) {
+    response.cookies.set(
+      cookieNames.access,
+      tokenPair.access,
+      cookieConfig.access,
+    );
+    response.cookies.set(
+      cookieNames.refresh,
+      tokenPair.refresh,
+      cookieConfig.refresh,
+    );
+  } else if (error.name === "AuthError") {
+    // Không refresh được (session hết hạn hẳn) → xóa cookie
     response.cookies.delete(cookieNames.access);
     response.cookies.delete(cookieNames.refresh);
   }

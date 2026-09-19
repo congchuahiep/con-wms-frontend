@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { InferOutput } from "valibot";
 import { authApi } from "@/configs/api";
 import { siteKeys } from "@/configs/querykeys";
 import type { AppError } from "@/errors";
@@ -66,9 +67,9 @@ export function useAddSite(
 
 export function useUpdateSite(
   id: number,
-  initialInput: Record<string, unknown>,
+  initialInput: Partial<InferOutput<typeof SiteSchema>>,
   options?: Omit<
-    UsePartialUpdateOptions<typeof SiteSchema, Site>,
+    UsePartialUpdateOptions<typeof SiteSchema, Site, AppError>,
     "schema" | "mutationFn" | "initialInput" | "id"
   >,
 ) {
@@ -77,7 +78,7 @@ export function useUpdateSite(
     ...options,
     schema: SiteSchema,
     id,
-    initialInput: initialInput as never,
+    initialInput,
     mutationFn: async ({ id: _id, ...data }) => {
       const res = await authApi.patch<Site>(
         (ep) => ep.sites.update(_id as number),

@@ -4,15 +4,17 @@ import { cookieNames } from "@/configs/cookie";
 /**
  * Next.js 16 Proxy (tên cũ: Middleware) — chạy trên server trước mọi request.
  *
- * Nhiệm vụ duy nhất: kiểm tra sự tồn tại của access_token cookie
- * trên các protected routes. Đây là "optimistic check" — chỉ đọc cookie,
+ * Nhiệm vụ duy nhất: kiểm tra sự tồn tại của cookie access_token (hoặc
+ * refresh_token — khi access đã hết hạn, proxy API sẽ tự refresh) trên các
+ * protected routes. Đây là "optimistic check" — chỉ đọc cookie,
  * KHÔNG verify token với backend (Next.js docs khuyến nghị).
  *
  * Verify thật sự diễn ra ở backend khi mỗi API call kèm cookie.
  *
  * Quy ước route:
  * - Public (không cần check): /login, /api/* (BFF + proxy), static assets
- * - Protected (cần access_token): tất cả routes khác
+ * - Protected (cần access_token hoặc còn refresh_token để tự refresh):
+ *   tất cả routes khác
  */
 
 const publicPaths = ["/login", "/register", "/forgot-password"];
@@ -33,10 +35,12 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Protected route: cần access_token
+  // Protected route: cần access_token (hoặc refresh_token — proxy API sẽ tự
+  // refresh khi access đã hết hạn/mất, chỉ redirect khi không còn cách nào lấy token)
   const accessToken = request.cookies.get(cookieNames.access)?.value;
+  const refreshToken = request.cookies.get(cookieNames.refresh)?.value;
 
-  if (!accessToken) {
+  if (!accessToken && !refreshToken) {
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }
