@@ -1,0 +1,10 @@
+import type { SimpleUser } from "@/features/auth";
+import type { SimpleMaterial } from "@/features/material";
+import type { SimpleWarehouse } from "@/features/warehouse";
+export type StocktakeNoteStatus = "draft" | "posted" | "voided";
+export type StocktakeLine = { id: number; material: SimpleMaterial; difference: string; reason: string; lineNo: number; note: string };
+export type StocktakeNote = { id: number; number: string; status: StocktakeNoteStatus; statusLabel: string; date: string; warehouse: SimpleWarehouse; createdBy: SimpleUser; totalQuantity: number; note: string; voidedBy: SimpleUser | null; voidedAt: string | null; voidReason: string; createdAt: string; updatedAt: string };
+export type StocktakeNoteDetail = StocktakeNote & { lines: StocktakeLine[] };
+export type StocktakeLineInput = { materialId: number; difference: string; reason: string; note: string };
+export type StocktakeNoteInput = { date: string; warehouseId: number; note: string; lines: StocktakeLineInput[] };
+export type GetStocktakeNotesParams = { status?: StocktakeNoteStatus; warehouse?: number; dateFrom?: string; dateTo?: string; search?: string; page?: number; pageSize?: number };

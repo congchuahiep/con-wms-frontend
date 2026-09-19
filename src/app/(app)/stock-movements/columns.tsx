@@ -29,16 +29,14 @@ export const columns: ColumnDef<StockMovement>[] = [
         {row.original.movementTypeLabel}
       </Badge>
     ),
-    size: 150,
-    minSize: 120,
+    size: 250,
+    minSize: 250,
   },
   {
     id: "materialCode",
     accessorKey: "material.code",
     header: "Mã vật tư",
-    cell: ({ getValue }) => (
-      <span className="font-mono text-xs">{getValue<string>()}</span>
-    ),
+    cell: ({ getValue }) => <code>{getValue<string>()}</code>,
     size: 110,
     minSize: 90,
   },

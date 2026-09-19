@@ -15,7 +15,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Sidebar,
@@ -67,10 +67,16 @@ const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { data: profile } = useGetUserProfile();
   const logout = useLogout();
 
   const isWarehouseActive = pathname.startsWith("/warehouses");
+
+  const handleLogout = () => {
+    router.push("/login");
+    logout.mutate();
+  };
 
   return (
     <Sidebar>
@@ -178,7 +184,7 @@ export function AppSidebar() {
             </div>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => logout.mutate(undefined)}>
+            <SidebarMenuButton onClick={handleLogout}>
               <HugeiconsIcon icon={Logout01Icon} strokeWidth={2} />
               <span>Đăng xuất</span>
             </SidebarMenuButton>

@@ -31,14 +31,14 @@ const TYPES = [
     label: "Phiếu xuất kho",
     href: "/notes/outbound",
     icon: FileExportIcon,
-    enabled: false,
+    enabled: true,
   },
   {
     type: "stocktake",
     label: "Phiếu kiểm kê",
     href: "/notes/stocktake",
     icon: FileSyncIcon,
-    enabled: false,
+    enabled: true,
   },
 ] as const;
 

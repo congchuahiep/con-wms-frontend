@@ -7,7 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { authApi } from "@/configs/api";
-import { inboundNoteKeys, stockKeys } from "@/configs/querykeys";
+import { inboundNoteKeys, noteKeys, stockKeys } from "@/configs/querykeys";
 import type { AppError } from "@/errors";
 import { type UsePostOptions, usePost } from "@/hooks/usePost";
 import type { Paginated } from "@/types";
@@ -93,6 +93,10 @@ export function useAddInboundNote(
         queryKey: stockKeys.all,
         exact: false,
       });
+      queryClient.invalidateQueries({
+        queryKey: noteKeys.all,
+        exact: false,
+      });
       options?.onSuccess?.(...args);
     },
   });
@@ -147,6 +151,10 @@ export function useDeleteInboundNote() {
         queryKey: inboundNoteKeys.all,
         exact: false,
       });
+      queryClient.invalidateQueries({
+        queryKey: noteKeys.all,
+        exact: false,
+      });
     },
   });
 }
@@ -172,6 +180,10 @@ export function useFinalizeInboundNote(id: number) {
       });
       queryClient.invalidateQueries({
         queryKey: stockKeys.all,
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: noteKeys.all,
         exact: false,
       });
     },

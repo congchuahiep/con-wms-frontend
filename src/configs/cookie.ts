@@ -23,11 +23,13 @@ const commonCookieOptions: Partial<ResponseCookie> = {
 export const cookieConfig = {
   access: {
     ...commonCookieOptions,
-    maxAge: 60 * 60, // 1 giờ (khớp Django JWT default)
+    // 8 giờ (khớp Django ACCESS_TOKEN_LIFETIME trong config/settings.py)
+    maxAge: 60 * 60 * 8,
   },
   refresh: {
     ...commonCookieOptions,
-    maxAge: 60 * 60 * 24 * 7, // 7 ngày
+    // 7 ngày (khớp Django REFRESH_TOKEN_LIFETIME)
+    maxAge: 60 * 60 * 24 * 7,
   },
 } as const;
 

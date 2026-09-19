@@ -69,7 +69,7 @@ export function createColumns({
           {getValue<string>()}
         </code>
       ),
-      size: 140,
+      size: 170,
       minSize: 140,
     },
     {
@@ -79,8 +79,8 @@ export function createColumns({
       cell: ({ getValue }) => (
         <span className="italic">{formatDate(getValue<string>())}</span>
       ),
-      size: 100,
-      minSize: 100,
+      size: 120,
+      minSize: 120,
     },
     {
       id: "noteType",

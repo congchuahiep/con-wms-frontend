@@ -53,3 +53,31 @@ export const inboundNoteKeys = {
     [...inboundNoteKeys.list(), params] as const,
   detail: (id: number) => [...inboundNoteKeys.all, "detail", id] as const,
 };
+
+export const siteKeys = {
+  all: ["sites"] as const,
+  list: () => [...siteKeys.all, "list"] as const,
+  filteredList: (params?: unknown) => [...siteKeys.list(), params] as const,
+  detail: (id: number) => [...siteKeys.all, "detail", id] as const,
+};
+
+export const outboundNoteKeys = {
+  all: ["outbound-notes"] as const,
+  list: () => [...outboundNoteKeys.all, "list"] as const,
+  filteredList: (params?: unknown) =>
+    [...outboundNoteKeys.list(), params] as const,
+  detail: (id: number) => [...outboundNoteKeys.all, "detail", id] as const,
+};
+
+export const stocktakeNoteKeys = {
+  all: ["stocktake-notes"] as const,
+  list: () => [...stocktakeNoteKeys.all, "list"] as const,
+  filteredList: (params?: unknown) =>
+    [...stocktakeNoteKeys.list(), params] as const,
+  detail: (id: number) => [...stocktakeNoteKeys.all, "detail", id] as const,
+};
+
+export const noteKeys = {
+  all: ["notes"] as const,
+  draftCount: () => [...noteKeys.all, "draft-count"] as const,
+};

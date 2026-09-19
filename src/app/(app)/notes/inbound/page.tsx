@@ -7,7 +7,6 @@ import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "@/components/ui/toast";
 import {
   type InboundNote,
-  type InboundNoteStatus,
   useDeleteInboundNote,
   useFinalizeInboundNote,
   useGetInboundNotes,
@@ -27,7 +26,6 @@ export default function InboundNotesPage() {
   const {
     params,
     search,
-    setStatus,
     setNoteType,
     setWarehouse,
     setSupplier,
@@ -77,8 +75,6 @@ export default function InboundNotesPage() {
       <InboundNotesHeader
         total={meta?.total ?? 0}
         onAdd={() => setCreateOpen(true)}
-        status={params.status ?? null}
-        onStatusChange={(status) => setStatus(status as InboundNoteStatus)}
       />
       <InboundNotesFilterBar
         noteTypeFilter={params.noteType}

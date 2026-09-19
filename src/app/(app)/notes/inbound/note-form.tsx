@@ -147,7 +147,7 @@ export function NoteForm({
                     <ButtonGroup>
                       <Button
                         variant={
-                          noteType === "purchase" ? "default" : "outline"
+                          noteType === "purchase" ? "secondary" : "outline"
                         }
                         type="button"
                         onClick={() =>
@@ -159,7 +159,7 @@ export function NoteForm({
                       <Button
                         variant={
                           noteType === "return_from_site"
-                            ? "default"
+                            ? "secondary"
                             : "outline"
                         }
                         type="button"

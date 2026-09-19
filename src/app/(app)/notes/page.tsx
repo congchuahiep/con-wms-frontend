@@ -27,14 +27,14 @@ const NOTE_TYPES = [
     title: "Xuất kho",
     description: "Phiếu xuất kho",
     icon: Archive01Icon,
-    enabled: false,
+    enabled: true,
   },
   {
     href: "/notes/stocktake",
     title: "Kiểm kê",
     description: "Phiếu kiểm kê kho",
     icon: Book01Icon,
-    enabled: false,
+    enabled: true,
   },
 ] as const;
 

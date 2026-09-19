@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   GetInboundNotesParams,
   InboundNoteStatus,
@@ -13,7 +14,6 @@ interface InboundNoteParamsState {
   params: GetInboundNotesParams;
   /** Giá trị search tức thời (chưa debounce) — dùng làm value cho ô input. */
   search: string;
-  setStatus: (status: InboundNoteStatus) => void;
   setNoteType: (type?: InboundNoteType) => void;
   setWarehouse: (warehouse?: number) => void;
   setSupplier: (supplier?: number) => void;
@@ -35,7 +35,6 @@ interface InboundNoteParamsState {
 export function useInboundNoteParams(): InboundNoteParamsState {
   const [search, setSearchState] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [status, setStatusState] = useState<InboundNoteStatus>("posted");
   const [noteType, setNoteTypeState] = useState<InboundNoteType | undefined>(
     undefined,
   );
@@ -53,13 +52,21 @@ export function useInboundNoteParams(): InboundNoteParamsState {
     return () => clearTimeout(timer);
   }, [search]);
 
+  // Status sống trên URL (?status=...) — NoteStatusTabs ghi trực tiếp bằng router.push.
+  const searchParams = useSearchParams();
+  const statusRaw = searchParams.get("status");
+  const status = (statusRaw as InboundNoteStatus | null) ?? "posted";
+
+  // Chuyển status (URL đổi) → quay về trang 1 ngay trong lần render tiếp theo,
+  // tránh gửi page cũ của status trước lên API.
+  const prevStatusRef = useRef(statusRaw);
+  if (prevStatusRef.current !== statusRaw) {
+    prevStatusRef.current = statusRaw;
+    setPageState(1);
+  }
+
   const setSearch = useCallback((next: string) => {
     setSearchState(next);
-    setPageState(1);
-  }, []);
-
-  const setStatus = useCallback((next: InboundNoteStatus) => {
-    setStatusState(next);
     setPageState(1);
   }, []);
 
@@ -119,7 +126,6 @@ export function useInboundNoteParams(): InboundNoteParamsState {
   return {
     params,
     search,
-    setStatus,
     setNoteType,
     setWarehouse,
     setSupplier,

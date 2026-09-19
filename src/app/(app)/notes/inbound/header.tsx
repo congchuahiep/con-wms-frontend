@@ -9,16 +9,9 @@ import { NoteStatusTabs } from "../_components/note-status-tabs";
 interface InboundNotesHeaderProps {
   total: number;
   onAdd: () => void;
-  status: string | null;
-  onStatusChange: (status: string) => void;
 }
 
-export function InboundNotesHeader({
-  total,
-  onAdd,
-  status,
-  onStatusChange,
-}: InboundNotesHeaderProps) {
+export function InboundNotesHeader({ total, onAdd }: InboundNotesHeaderProps) {
   return (
     <header
       className={cn(
@@ -26,7 +19,7 @@ export function InboundNotesHeader({
       )}
     >
       <div className="flex items-center gap-3">
-        <NoteStatusTabs status={status} onStatusChange={onStatusChange} />
+        <NoteStatusTabs noteType="inbound" />
         <p className="text-sm text-muted-foreground">{total} phiếu</p>
       </div>
 

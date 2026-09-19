@@ -29,6 +29,9 @@ export const authEndpoints = {
     refresh: "/auth/refresh",
     logout: "/auth/logout",
   },
+  notes: {
+    draftCount: "/draft-count/",
+  },
   warehouses: {
     list: "/warehouses/",
     create: "/warehouses/",
@@ -77,6 +80,31 @@ export const authEndpoints = {
     delete: (id: number) => `/inbound-notes/${id}/`,
     post: (id: number) => `/inbound-notes/${id}/post/`,
     void: (id: number) => `/inbound-notes/${id}/void/`,
+  },
+  sites: {
+    list: "/sites/",
+    create: "/sites/",
+    detail: (id: number) => `/sites/${id}/`,
+    update: (id: number) => `/sites/${id}/`,
+    delete: (id: number) => `/sites/${id}/`,
+  },
+  outboundNotes: {
+    list: "/outbound-notes/",
+    create: "/outbound-notes/",
+    detail: (id: number) => `/outbound-notes/${id}/`,
+    update: (id: number) => `/outbound-notes/${id}/`,
+    delete: (id: number) => `/outbound-notes/${id}/`,
+    post: (id: number) => `/outbound-notes/${id}/post/`,
+    void: (id: number) => `/outbound-notes/${id}/void/`,
+  },
+  stocktakeNotes: {
+    list: "/stocktake-notes/",
+    create: "/stocktake-notes/",
+    detail: (id: number) => `/stocktake-notes/${id}/`,
+    update: (id: number) => `/stocktake-notes/${id}/`,
+    delete: (id: number) => `/stocktake-notes/${id}/`,
+    post: (id: number) => `/stocktake-notes/${id}/post/`,
+    void: (id: number) => `/stocktake-notes/${id}/void/`,
   },
 } as const;
 
