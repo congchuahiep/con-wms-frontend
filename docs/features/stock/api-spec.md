@@ -69,7 +69,7 @@
       "warehouse": { "id": 1, "code": "KHO_CHINH", "name": "Kho chính — Bãi sau" },
       "quantity": "100.000",
       "unitPrice": "88000.00",
-      "inboundNote": { "id": 3, "number": "PN-20260813-001" },
+      "sourceNote": { "id": 3, "number": "PN-20260813-001", "noteType": "inbound" },
       "reversalOf": null,
       "reason": "",
       "createdBy": { "id": 2, "email": "thukho@test.com" },
@@ -86,6 +86,11 @@
   }
 }
 ```
+
+> **`sourceNote`** (v1.7): phiếu nguồn của dòng sổ kho — `{ id, number, noteType } | null`,
+> `noteType: "inbound" | "outbound" | "stocktake"`. Backend suy loại từ FK nguồn thực tế.
+> Dòng nhập do điều chuyển (`inbound_transfer_from_warehouse`) có `noteType = "outbound"`
+> (nguồn là phiếu xuất điều chuyển); dòng reversal trỏ về phiếu đã hủy (giống dòng gốc).
 
 ## 3. Error responses
 

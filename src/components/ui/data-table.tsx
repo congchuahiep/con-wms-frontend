@@ -105,7 +105,8 @@ export function DataTable<TData>({
         {showHeader && (
           <TableHeader
             className={cn(
-              stickyHeader && "sticky top-0 z-10 bg-background",
+              stickyHeader && "sticky top-0 z-10 bg-secondary/70 saturate-50",
+              "backdrop-blur",
               "border-b",
             )}
           >

@@ -1,7 +1,8 @@
 "use client";
 
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "@/components/ui/toast";
@@ -18,6 +19,7 @@ import { EditInboundNoteDialog } from "./edit-dialog";
 import { InboundNotesFilterBar } from "./filter-bar";
 import { InboundNotesFooter } from "./footer";
 import { InboundNotesHeader } from "./header";
+import { InboundNotePrintDialog } from "./print-dialog";
 import { InboundNotesTableSection } from "./table-section";
 import { useInboundNoteParams } from "./use-inbound-note-params";
 import { VoidInboundNoteDialog } from "./void-dialog";
@@ -41,6 +43,7 @@ export default function InboundNotesPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [printingNoteId, setPrintingNoteId] = useState<number | null>(null);
   const [voidingNote, setVoidingNote] = useState<InboundNote | null>(null);
   const [finalizingNote, setFinalizingNote] = useState<InboundNote | null>(
     null,
@@ -52,6 +55,23 @@ export default function InboundNotesPage() {
   const { mutateAsync: finalizeNote, isPending: isFinalizing } =
     useFinalizeInboundNote(finalizingNote?.id ?? 0);
 
+  // Prefill khi mở từ trang Công trường (?warehouseId=...) — kho đã chọn sẵn
+  const searchParams = useSearchParams();
+  const createPrefill = useMemo(() => {
+    const raw = searchParams.get("warehouseId");
+    const n = raw ? Number(raw) : Number.NaN;
+    return Number.isInteger(n) && n > 0 ? { warehouseId: n } : undefined;
+  }, [searchParams]);
+
+  // Đến với prefill (từ trang Công trường) → tự mở dialog tạo phiếu 1 lần
+  const didAutoOpenRef = useRef(false);
+  useEffect(() => {
+    if (createPrefill && !didAutoOpenRef.current) {
+      didAutoOpenRef.current = true;
+      setCreateOpen(true);
+    }
+  }, [createPrefill]);
+
   const tableColumns = useMemo(
     () =>
       createColumns({
@@ -59,6 +79,7 @@ export default function InboundNotesPage() {
         onDelete: setDeleteTarget,
         onFinalize: setFinalizingNote,
         onVoid: setVoidingNote,
+        onPrint: (note) => setPrintingNoteId(note.id),
       }),
     [],
   );
@@ -108,6 +129,11 @@ export default function InboundNotesPage() {
       />
 
       <CreateInboundNoteDialog open={createOpen} onOpenChange={setCreateOpen} />
+
+      <InboundNotePrintDialog
+        noteId={printingNoteId}
+        onClose={() => setPrintingNoteId(null)}
+      />
 
       <EditInboundNoteDialog
         noteId={editingNoteId}

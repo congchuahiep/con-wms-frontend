@@ -14,7 +14,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toast";
-import { type OutboundNote, useVoidOutboundNote } from "@/features/outbound-note";
+import {
+  type OutboundNote,
+  useVoidOutboundNote,
+} from "@/features/outbound-note";
 
 interface VoidOutboundNoteDialogProps {
   note: OutboundNote | null;

@@ -1,14 +1,13 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type {
   GetInboundNotesParams,
   InboundNoteStatus,
   InboundNoteType,
 } from "@/features/inbound-note";
-
-const SEARCH_DEBOUNCE_MS = 300;
+import { useUrlSearchParam } from "@/hooks/use-url-search-param";
 
 interface InboundNoteParamsState {
   params: GetInboundNotesParams;
@@ -26,15 +25,19 @@ interface InboundNoteParamsState {
 /**
  * State tập trung cho bộ lọc + phân trang của trang Phiếu nhập.
  *
- * - `search` được debounce trước khi đưa vào `params` để mỗi phím gõ
- *   không tạo ra một query + re-render cả cây component.
+ * - `search` sống trên URL (`?search=...`) — gõ xong debounce 300ms rồi commit
+ *   bằng `router.replace` (hook `useUrlSearchParam`). Link ngoài (vd sổ kho)
+ *   vào với `?search=PN-...` tự điền sẵn và lọc sẵn.
  * - Các setter giữ identity ổn định bằng `useCallback` và `params` được
  *   memo hoá, tránh re-render lan truyền do prop thay đổi identity mỗi
  *   lần render.
  */
 export function useInboundNoteParams(): InboundNoteParamsState {
-  const [search, setSearchState] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const {
+    value: urlSearch,
+    inputValue: search,
+    setInputValue: setSearch,
+  } = useUrlSearchParam("search");
   const [noteType, setNoteTypeState] = useState<InboundNoteType | undefined>(
     undefined,
   );
@@ -43,14 +46,6 @@ export function useInboundNoteParams(): InboundNoteParamsState {
   const [dateFrom, setDateFromState] = useState<string | undefined>(undefined);
   const [dateTo, setDateToState] = useState<string | undefined>(undefined);
   const [page, setPageState] = useState(1);
-
-  useEffect(() => {
-    const timer = setTimeout(
-      () => setDebouncedSearch(search),
-      SEARCH_DEBOUNCE_MS,
-    );
-    return () => clearTimeout(timer);
-  }, [search]);
 
   // Status sống trên URL (?status=...) — NoteStatusTabs ghi trực tiếp bằng router.push.
   const searchParams = useSearchParams();
@@ -65,10 +60,12 @@ export function useInboundNoteParams(): InboundNoteParamsState {
     setPageState(1);
   }
 
-  const setSearch = useCallback((next: string) => {
-    setSearchState(next);
+  // Search commit lên URL (gõ xong debounce hoặc link từ sổ kho) → về trang 1.
+  const prevSearchRef = useRef(urlSearch);
+  if (prevSearchRef.current !== urlSearch) {
+    prevSearchRef.current = urlSearch;
     setPageState(1);
-  }, []);
+  }
 
   const setNoteType = useCallback((next: InboundNoteType | undefined) => {
     setNoteTypeState(next);
@@ -107,20 +104,11 @@ export function useInboundNoteParams(): InboundNoteParamsState {
       supplier: supplier ?? undefined,
       dateFrom: dateFrom ?? undefined,
       dateTo: dateTo ?? undefined,
-      search: debouncedSearch || undefined,
+      search: urlSearch || undefined,
       page,
       pageSize: 20,
     }),
-    [
-      status,
-      noteType,
-      warehouse,
-      supplier,
-      dateFrom,
-      dateTo,
-      debouncedSearch,
-      page,
-    ],
+    [status, noteType, warehouse, supplier, dateFrom, dateTo, urlSearch, page],
   );
 
   return {

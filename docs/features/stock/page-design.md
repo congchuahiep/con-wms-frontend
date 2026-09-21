@@ -18,56 +18,83 @@ Sidebar: thêm mục **"Sổ kho"** (`/stock-movements`) vào nhóm _Nghiệp v�
 
 ### 2.1 Phân tích UX
 
-- **Ai dùng:** thủ kho (chính) — xem tồn để biết còn bao nhiêu hàng; kế toán — đối chiếu giá trị tồn.
+- **Ai dùng:** thủ kho (chính) — xem tổng tồn để biết còn bao nhiêu hàng; kế toán — đối chiếu giá trị tồn.
 - **Cần làm gì:**
     - _Primary action:_ **Lập phiếu nhập** → điều hướng `/inbound-notes` (thủ kho "thêm hàng" = lập phiếu, không sửa tồn trực tiếp — stock D9).
-    - _Secondary:_ lọc theo kho / danh mục / trạng thái tồn, tìm mã/tên vật tư.
-- **Dữ liệu:** `useGetStockBalances(params)` — mảng phẳng `StockBalance[]` (không phân trang). Quy mô: vài trăm dòng → table client-side render + sort, filter server-side.
+    - _Secondary:_ lọc theo danh mục / trạng thái tồn, tìm mã/tên vật tư.
+- **Dữ liệu:** `useGetStockBalances(params)` trả `StockBalance[]` theo cặp (warehouse, material) → gộp client-side bằng `aggregateStockBalances()` thành `StockBalanceSummary[]` (**tổng mọi kho**, mỗi vật tư 1 dòng + danh sách kho đang giữ hàng). Quy mô: vài trăm dòng → gộp + table client-side render/sort, filter server-side.
+- **Không có lọc "Kho"** — view chi tiết theo từng kho nằm ở trang warehouse detail (`/warehouses/[id]`).
 - **Thay đổi so với mock cũ:** bỏ tabs "Sắp hết/Còn hàng" (cần `StockAlert` — backend chưa có) → thay bằng select **"Tồn: Tất cả / Còn tồn (≠ 0)"** (`hasStock`).
 
 ### 2.2 Mockup
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ [▣] Tồn kho   128 dòng tồn kho · 3 kho          [⤓ Xuất CSV]  [+ Lập phiếu nhập]│ ← header
-├──────────────────────────────────────────────────────────────────────────────┤
-│ [🏷 Danh mục: Tất cả ▾] [🏢 Kho: Tất cả kho ▾] [Tồn: Tất cả ▾]   [🔍 Tìm mã, tên vật tư...] │ ← filter bar
-├──────────────────────────────────────────────────────────────────────────────┤
-│ Mã            Tên vật tư              Kho          ĐVT   Tồn kho   Giá nhập gần nhất  Giá trị tồn │
-│ XM_PCB40      Xi măng PCB40           Kho chính —… BAO    85.000   88.000            7.480.000   │
-│ CAT_XAY       Cát xây dựng            Kho chính —… M3     12.500   350.000           4.375.000   │
-│ THEP_D10      Thép D10                Kho phụ      KG     —        —                 —           │
-│ …                                                                                             │
-└──────────────────────────────────────────────────────────────────────────────┘
-│ 128 dòng · Tổng giá trị tồn: 1.234.567.890 đ                                    │ ← footer (không paginate)
-└──────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────┐
+│ [▣] Tồn kho   128 mặt hàng · 3 kho                        [⤓ Xuất CSV]  [+ Lập phiếu nhập]│ ← header
+├──────────────────────────────────────────────────────────────────────────────────────┤
+│ [🏷 Danh mục: Tất cả ▾] [📦 Tồn: Tất cả ▾]                 [🔍 Tìm mã, tên vật tư...]     │ ← filter bar
+├──────────────────────────────────────────────────────────────────────────────────────┤
+│   Mã            Tên vật tư            Các kho giữ hàng   ĐVT  Tồn kho  Giá nhập  Giá trị tồn │
+│ ▸ XM_PCB40      Xi măng PCB40         [Kho chính][Kho phụ] BAO  85.000   88.000   7.480.000 │ ← expander đóng
+│ ▾ XM_PCB40      Xi măng PCB40         [Kho chính][Kho phụ] BAO  85.000   88.000   7.480.000 │ ← expander mở
+│   ┌─ chi tiết theo kho (ml-10 border-l bg-background) ─────────────────────────────┐
+│   │ Kho                    Số lượng    ĐVT   Giá trị tồn                           │
+│   │ KHO1 · Kho chính       60.000      BAO   5.280.000                             │
+│   │ KHO2 · Kho phụ         25.000      BAO   2.200.000                             │
+│   └────────────────────────────────────────────────────────────────────────────────┘
+│ CAT_XAY       Cát xây dựng          [Kho chính]           M3   12.500   350.000  4.375.000 │
+└──────────────────────────────────────────────────────────────────────────────────────┘
+│ 128 mặt hàng · Tổng giá trị tồn: 1.234.567.890 đ                                  │ ← footer (không paginate)
+└────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+> [Kho chính] là badge outline (có thể nhiều kho/dòng — flex-wrap, truncate dài).
+> "Các kho có vật liệu này" chỉ liệt kê kho có quantity ≠ 0.
+> ▸/▾ là expander (v1.6) giống các trang phiếu nhập/xuất/kiểm kê — khép/mở `InventoryDetailExpanded` (§2.4).
 
 ### 2.3 Columns
 
-| Column            | Accessor            | Render                                                           | Size/minSize |
-| ----------------- | ------------------- | ---------------------------------------------------------------- | ------------ |
-| Mã                | `material.code`     | font-mono text-xs                                                | 120/90       |
-| Tên vật tư        | `material.name`     | font-medium                                                      | 250/180      |
-| Kho               | `warehouse.name`    | Badge outline                                                    | 180/120      |
-| ĐVT               | `unit.code`         | muted                                                            | 80/60        |
-| Tồn kho           | `quantity`          | right, tabular-nums, `vi-VN` format; **đỏ khi ≤ 0**, đậm khi > 0 | 100/80       |
-| Giá nhập gần nhất | `lastPurchasePrice` | right, tabular; `"—"` khi null                                   | 140/110      |
-| Giá trị tồn       | `stockValue`        | right, tabular, font-medium; `"—"` khi null                      | 160/120      |
+| Column                  | Accessor            | Render                                                                   | Size/minSize |
+| ----------------------- | ------------------- | ------------------------------------------------------------------------ | ------------ |
+| **(mới) Expander**      | —                   | `Button icon-xs ghost` chevron ▸/▾, `row.getToggleExpandedHandler()`; `enableSorting: false` — v1.6 | 40/40        |
+| Mã                      | `material.code`     | font-mono text-xs                                                        | 120/90       |
+| Tên vật tư              | `material.name`     | font-medium                                                              | 250/180      |
+| Các kho có vật liệu này | `warehouseBalances` | Badge outline mỗi kho (derive `b.warehouse`, flex-wrap, truncate, `title` full name); `"—"` khi rỗng | 220/160      |
+| ĐVT                     | `unit.code`         | muted                                                                    | 80/60        |
+| Tồn kho (tổng)          | `totalQuantity`     | right, tabular-nums, `vi-VN` format; **đỏ khi ≤ 0**, đậm khi > 0         | 100/80       |
+| Giá nhập gần nhất       | `lastPurchasePrice` | `formatMoney` (right, tabular, hậu tố "đ"); `"—"` khi null              | 140/110      |
+| Giá trị tồn (tổng)      | `totalStockValue`   | `formatMoney` (right, tabular, font-medium, hậu tố "đ"); `"—"` khi null | 160/120      |
 
-> Không có cột "Danh mục" — `StockBalance` không trả về category.
+> Không có cột "Danh mục" — `StockBalanceSummary` không trả về category.
+> Cột badge chuyển sang derive từ `warehouseBalances` (v1.6, D9) — hiển thị không đổi.
+
+### 2.4 Detail expanded — tồn theo từng kho (v1.6)
+
+Bấm ▸ mở rộng dòng vật tư → `InventoryDetailExpanded` render **bảng con theo từng kho** giữ vật tư kèm số lượng. Dữ liệu đã có sẵn trong `row.original.warehouseBalances` từ aggregation — **không fetch thêm**, không đổi API. **Cho phép sort bằng bấm header** (`getSortedRowModel()` — không sort mặc định).
+
+| Column    | Accessor / cell                                   | Render                                                        | Sort | Size/minSize |
+| --------- | ------------------------------------------------ | ------------------------------------------------------------- | ---- | ------------ |
+| Kho       | `warehouse.name`                                  | Tên kho (muted)                                                | ✅   | 320/160      |
+| Số lượng  | `quantity` (accessorFn `Number`)                  | right, tabular-nums, `formatDecimal`; đỏ khi ≤ 0               | ✅   | 110/90       |
+| Giá trị tồn | `quantity × summary.lastPurchasePrice`          | `formatMoney` (hậu tố "đ"); `"—"` khi `lastPurchasePrice` null | ✅   | 150/110      |
+
+> Từ 2026-09-20 (sau duyệt): **bỏ cột ĐVT** (không cần thiết — ĐVT đã có ở bảng chính) và cột Kho chỉ hiện tên (bỏ mã kho) theo điều chỉnh của user.
+
+Container giống `notes/inbound/detail-expanded.tsx`: `ml-10 border-l bg-background`, `DataTable` con với `stickyHeader={false}` (tránh đè sticky header bảng chính), `emptyPlaceholder="Không có dòng tồn theo kho"` (không xảy ra trong thực tế vì `warehouseBalances` luôn ≠ rỗng). Column defs là factory `createExpandedColumns(summary)` (cần đóng `summary` cho cột Giá trị tồn — `lastPurchasePrice`), `useMemo` theo `summary`.
 
 ### 2.4 Component tree + state flow
 
 ```
 InventoryPage (page.tsx)
-├── useStockParams()                      ← { params, setSearch, setWarehouse, setCategory, setStockStatus }
-├── useGetStockBalances(params)           ← StockBalance[]
+├── useStockParams()                      ← { params, setSearch, setCategory, setStockStatus } (không còn lọc kho)
+├── useGetStockBalances(params)           ← StockBalance[] (theo warehouse×material)
+├── aggregateStockBalances(balances)      ← StockBalanceSummary[] (gộp theo vật tư — useMemo)
 ├── state: table (useReactTable, data = items, client-side sort)
-├── <InventoryHeader totalRows={items.length} totalValue={sum(stockValue)} />
-├── <InventoryFilterBar … />              ← Selects (useGetWarehouses, useGetCategories) + search
-├── <InventoryTableSection table />
-└── <InventoryFooter totalRows totalValue />   ← KHÔNG dùng DataTablePagination (mảng phẳng)
+│ <InventoryHeader totalRows={items.length} totalValue={sum(totalStockValue)} />
+│ <InventoryFilterBar … />              ← Selects (useGetCategories) + search
+│ <InventoryTableSection table … renderExpandedRow={(row) => <InventoryDetailExpanded summary={row.original} />} /> ← v1.6
+│ └─ DataTable renderExpandedRow → <InventoryDetailExpanded> — bảng con theo kho (không fetch thêm)
+└ <InventoryFooter totalRows totalValue />   ← KHÔNG dùng DataTablePagination (mảng phẳng)
 ```
 
 ### 2.5 Components
@@ -88,8 +115,9 @@ src/app/(app)/inventory/
 ├── page.tsx           ← sửa: mock → useGetStockBalances
 ├── header.tsx         ← sửa: stats thật + button link /inbound-notes
 ├── filter-bar.tsx     ← sửa: data thật + select "Tồn" (hasStock)
-├── columns.tsx        ← sửa: StockBalance columns
-├── table-section.tsx  ← giữ (DataTable)
+├── columns.tsx        ← sửa: StockBalance columns + expander (v1.6)
+├── detail-expanded.tsx← MỚI (v1.6): bảng con theo kho × số lượng
+├── table-section.tsx  ← sửa (v1.6): nhận renderExpandedRow
 ├── footer.tsx         ← sửa: tổng dòng + tổng giá trị, bỏ pagination
 ├── tabs.tsx           ← XOÁ (thay bằng select trạng thái tồn)
 └── use-stock-params.ts ← mới
@@ -127,19 +155,20 @@ src/app/(app)/inventory/
 
 ### 3.3 Columns
 
-| Column     | Accessor              | Render                                                  | Size/minSize |
-| ---------- | --------------------- | ------------------------------------------------------- | ------------ |
-| Ngày       | `date`                | `dd/mm/yyyy`                                            | 100/90       |
-| Loại       | `movementType`        | Badge `getMovementTypeColorClass` + `movementTypeLabel` | 150/120      |
-| Mã vật tư  | `material.code`       | font-mono text-xs                                       | 110/90       |
-| Tên vật tư | `material.name`       | —                                                       | 200/140      |
-| Kho        | `warehouse.name`      | muted                                                   | 150/110      |
-| Số lượng   | `quantity`            | `formatSignedQuantity`; right tabular; + xanh / − đỏ    | 110/90       |
-| Đơn giá    | `unitPrice`           | right tabular; `"—"` null                               | 120/100      |
-| Phiếu      | `inboundNote?.number` | font-mono; `"—"` null                                   | 170/130      |
-| Lý do      | `reason`              | truncate; badge "Hủy" khi `reversalOf != null`          | 140/100      |
-| Người tạo  | `createdBy.email`     | muted                                                   | 160/110      |
-| Thời điểm  | `createdAt`           | `HH:mm dd/mm`                                           | 140/110      |
+| Column     | Accessor                | Render                                                                         | Size/minSize |
+| ---------- | ----------------------- | ------------------------------------------------------------------------------ | ------------ |
+| Ngày       | `date`                  | `dd/mm/yyyy`                                                                    | 100/90       |
+| Loại       | `movementType`          | Badge `getMovementTypeColorClass` + `movementTypeLabel`                         | 150/120      |
+| Mã vật tư  | `material.code`         | font-mono text-xs                                                               | 110/90       |
+| Tên vật tư | `material.name`         | —                                                                               | 200/140      |
+| Kho        | `warehouse.name`        | muted                                                                           | 150/110      |
+| Đơn giá    | `unitPrice`             | `formatMoney` (right tabular, hậu tố "đ"); `"—"` khi null                       | 120/100      |
+| Số lượng   | `quantity`              | `formatSignedQuantity`; right tabular; + xanh / − đỏ                            | 110/90       |
+| Thành tiền | `quantity × unitPrice`  | `formatMoney` (right tabular, hậu tố "đ"); giữ dấu ±, + xanh / − đỏ; `"—"` khi `unitPrice` null | 160/110 |
+| Phiếu      | `inboundNote?.number`   | font-mono; `"—"` null                                                           | 170/130      |
+| Lý do      | `reason`                | truncate; badge "Hủy" khi `reversalOf != null`                                  | 140/100      |
+| Người tạo  | `createdBy.email`       | muted                                                                           | 160/110      |
+| Thời điểm  | `createdAt`             | `HH:mm dd/mm`                                                                   | 140/110      |
 
 ### 3.4 Component tree + state flow
 
@@ -204,3 +233,13 @@ Combobox searchable (Popover + Command), search **server-side debounce 300ms** q
 - [x] `WarehouseSelectField`, `SupplierSelectField`, `ConfirmDialog`, `src/utils/format.ts` (formatDecimal/formatDate/formatDateTime)
 - [x] `stock/utils.ts` thêm `MOVEMENT_TYPE_LABELS` + `MOVEMENT_TYPES` (cho filter loại dòng)
 - [x] Typecheck + biome check + `next build` ✅
+
+## 7. Checklist v1.6 — Mở rộng xem tồn theo từng kho ✅ Hoàn thành (2026-09-20)
+
+- [x] `src/features/stock/types.ts` — thêm `StockBalanceWarehouse`; đổi `StockBalanceSummary.warehouses` → `warehouseBalances: StockBalanceWarehouse[]`
+- [x] `src/features/stock/utils.ts` — `aggregateStockBalances()` populate `warehouseBalances` (kho quantity ≠ 0, giữ thứ tự; không lưu giá theo kho — D10)
+- [x] `src/app/(app)/inventory/columns.tsx` — thêm expander column (chevron ▸/▾, `enableSorting: false`); cột "Các kho" derive từ `warehouseBalances`
+- [x] `src/app/(app)/inventory/detail-expanded.tsx` — `InventoryDetailExpanded` (bảng con: Kho, Số lượng, ĐVT, Giá trị tồn = `quantity × summary.lastPurchasePrice`; sort header click qua `getSortedRowModel`)
+- [x] `src/app/(app)/inventory/table-section.tsx` — nhận `renderExpandedRow`, truyền xuống `DataTable`
+- [x] `src/app/(app)/inventory/page.tsx` — `getRowCanExpand: () => true` + `renderExpandedRow`
+- [x] Validate: `tsc --noEmit` ✅ + `biome check` ✅ + `next build` ✅

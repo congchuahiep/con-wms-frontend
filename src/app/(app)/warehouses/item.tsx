@@ -2,6 +2,7 @@ import { EllipsisIcon, Location01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Map as GoogleMap } from "@vis.gl/react-google-maps";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { WarehouseMapMarker } from "@/components/warehouse-marker";
 import type { Warehouse } from "@/lib/mock/data";
@@ -17,13 +18,21 @@ export function WarehouseItem({ warehouse }: { warehouse: Warehouse }) {
         "shadow bg-background",
       )}
     >
-      <div className="p-2 pr-3 col-span-2 flex flex-col">
+      <div className="p-2 pr-3 col-span-3 flex flex-col">
         <div className="flex-1">
           <h3 className="font-semibold">{warehouse.name}</h3>
 
           <p className="mb-2 font-mono text-xs text-muted-foreground">
             {warehouse.code}
           </p>
+
+          {warehouse.site && (
+            <p className="mb-2">
+              <Badge variant="outline" className="font-mono text-[10px]">
+                Kho công trường · {warehouse.site.code}
+              </Badge>
+            </p>
+          )}
 
           <div className="flex items-start text-muted-foreground text-sm">
             <HugeiconsIcon
@@ -59,7 +68,7 @@ export function WarehouseItem({ warehouse }: { warehouse: Warehouse }) {
         </div>
       </div>
 
-      <div className="flex-1 border rounded-lg overflow-hidden col-span-5">
+      <div className="flex-1 border rounded-lg overflow-hidden col-span-4">
         <GoogleMap
           mapId={`warehouse-map-${warehouse.id}`}
           className="size-full"
@@ -92,7 +101,7 @@ function WarehouseStats({ warehouse }: { warehouse: Warehouse }) {
   return (
     <div
       className={cn(
-        "grid grid-cols-3 place-items-center gap-1 p-1.5",
+        "grid grid-cols-2 place-items-center gap-1 p-1.5",
         "bg-secondary h-16 w-full self-center rounded border",
       )}
     >
@@ -108,32 +117,6 @@ function WarehouseStats({ warehouse }: { warehouse: Warehouse }) {
           {warehouse.totalQuantity.toLocaleString("vi-VN")}
         </span>
         <span className="text-xs text-muted-foreground">Tổng tồn</span>
-      </div>
-
-      <div
-        className={cn(
-          "flex flex-col items-center gap-0.5 justify-center",
-          "rounded size-full",
-          warehouse.lowStock > 0 && "text-destructive bg-red-100",
-        )}
-      >
-        <span
-          className={cn(
-            "text-base font-semibold leading-none",
-            warehouse.lowStock > 0 && "text-destructive",
-          )}
-        >
-          {warehouse.lowStock}
-        </span>
-
-        <span
-          className={cn(
-            "text-xs text-muted-foreground",
-            warehouse.lowStock > 0 && "text-destructive",
-          )}
-        >
-          Mặt hàng sắp hết
-        </span>
       </div>
     </div>
   );

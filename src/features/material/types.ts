@@ -39,6 +39,7 @@ export type SimpleMaterial = {
   id: number;
   code: string;
   name: string;
+  unit: string;
 };
 
 export type GetMaterialsParams = {

@@ -1,5 +1,7 @@
 "use client";
 
+import type { DeepPartial } from "@formisch/react";
+import type * as v from "valibot";
 import {
   Dialog,
   DialogContent,
@@ -7,19 +9,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useAddStocktakeNote } from "@/features/stocktake";
+import {
+  type StocktakeNoteSchema,
+  useAddStocktakeNote,
+} from "@/features/stocktake";
 import { NoteForm } from "./note-form";
 
 interface CreateStocktakeNoteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Prefill một phần form — vd: `warehouseId` = kho công trường khi mở từ trang Công trường. */
+  initialInput?: DeepPartial<v.InferInput<typeof StocktakeNoteSchema>>;
 }
 
 export function CreateStocktakeNoteDialog({
   open,
   onOpenChange,
+  initialInput,
 }: CreateStocktakeNoteDialogProps) {
   const { form, handleSubmit, isPending, resetForm } = useAddStocktakeNote({
+    initialInput,
     onSuccess: () => onOpenChange(false),
   });
 
@@ -35,7 +44,7 @@ export function CreateStocktakeNoteDialog({
         <DialogHeader>
           <DialogTitle>Tạo phiếu kiểm kê</DialogTitle>
           <DialogDescription>
-            Phiếu được lưu dạng nháp - chốt phiếu để ghi điều chỉnh tồn kho.
+            Phiếu được lưu dạng nháp — chốt phiếu để ghi điều chỉnh tồn kho.
           </DialogDescription>
         </DialogHeader>
 

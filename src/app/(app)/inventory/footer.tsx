@@ -13,7 +13,7 @@ export function InventoryFooter({
 }: InventoryFooterProps) {
   return (
     <footer className="shrink-0 flex items-center justify-between border-t px-6 py-2">
-      <p className="text-sm text-muted-foreground">{totalRows} dòng tồn kho</p>
+      <p className="text-sm text-muted-foreground">{totalRows} mặt hàng</p>
       <p className="text-sm text-muted-foreground">
         Tổng giá trị tồn:{" "}
         <span className="font-medium tabular-nums text-foreground">

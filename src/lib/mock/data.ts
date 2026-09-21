@@ -7,6 +7,8 @@ export type Warehouse = {
   id: number;
   code: string;
   name: string;
+  /** Kho công trường liên kết công trường (chỉ khi là kho của 1 Site). */
+  site?: { id: number; code: string; name: string } | null;
   address: string;
   note: string;
   latitude: number | null;

@@ -8,6 +8,7 @@ import {
   MoreVerticalIcon,
   MultiplicationSignCircleIcon,
   PencilEdit01Icon,
+  PrinterIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -30,6 +31,7 @@ interface ColumnsOptions {
   onDelete: (note: InboundNote) => void;
   onFinalize: (note: InboundNote) => void;
   onVoid: (note: InboundNote) => void;
+  onPrint: (note: InboundNote) => void;
 }
 
 export function createColumns({
@@ -37,6 +39,7 @@ export function createColumns({
   onDelete,
   onFinalize,
   onVoid,
+  onPrint,
 }: ColumnsOptions): ColumnDef<InboundNote>[] {
   return [
     {
@@ -198,6 +201,10 @@ export function createColumns({
                 }
               />
               <DropdownMenuContent align="end" className="w-3xs">
+                <DropdownMenuItem onClick={() => onPrint(note)}>
+                  <HugeiconsIcon icon={PrinterIcon} strokeWidth={2} />
+                  In phiếu
+                </DropdownMenuItem>
                 {isDraft && (
                   <DropdownMenuItem onClick={() => onEdit(note)}>
                     <HugeiconsIcon icon={PencilEdit01Icon} strokeWidth={2} />

@@ -1,14 +1,13 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type {
   GetOutboundNotesParams,
   OutboundNoteStatus,
   OutboundNoteType,
 } from "@/features/outbound-note";
-
-const SEARCH_DEBOUNCE_MS = 300;
+import { useUrlSearchParam } from "@/hooks/use-url-search-param";
 
 interface OutboundNoteParamsState {
   params: GetOutboundNotesParams;
@@ -27,12 +26,16 @@ interface OutboundNoteParamsState {
 /**
  * State tập trung cho bộ lọc + phân trang của trang Phiếu xuất.
  *
- * - `search` được debounce trước khi đưa vào `params`.
+ * - `search` sống trên URL (`?search=...`) — debounce 300ms rồi commit bằng
+ *   `router.replace` (hook `useUrlSearchParam`). Link ngoài lọc sẵn bằng mã.
  * - Các setter giữ identity ổn định bằng `useCallback`.
  */
 export function useOutboundNoteParams(): OutboundNoteParamsState {
-  const [search, setSearchState] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const {
+    value: urlSearch,
+    inputValue: search,
+    setInputValue: setSearch,
+  } = useUrlSearchParam("search");
   const [noteType, setNoteTypeState] = useState<OutboundNoteType | undefined>(
     undefined,
   );
@@ -42,14 +45,6 @@ export function useOutboundNoteParams(): OutboundNoteParamsState {
   const [dateFrom, setDateFromState] = useState<string | undefined>(undefined);
   const [dateTo, setDateToState] = useState<string | undefined>(undefined);
   const [page, setPageState] = useState(1);
-
-  useEffect(() => {
-    const timer = setTimeout(
-      () => setDebouncedSearch(search),
-      SEARCH_DEBOUNCE_MS,
-    );
-    return () => clearTimeout(timer);
-  }, [search]);
 
   // Status sống trên URL (?status=...) — NoteStatusTabs ghi trực tiếp bằng router.push.
   const searchParams = useSearchParams();
@@ -64,10 +59,12 @@ export function useOutboundNoteParams(): OutboundNoteParamsState {
     setPageState(1);
   }
 
-  const setSearch = useCallback((next: string) => {
-    setSearchState(next);
+  // Search commit lên URL (gõ xong debounce hoặc link từ sổ kho) → về trang 1.
+  const prevSearchRef = useRef(urlSearch);
+  if (prevSearchRef.current !== urlSearch) {
+    prevSearchRef.current = urlSearch;
     setPageState(1);
-  }, []);
+  }
 
   const setNoteType = useCallback((next: OutboundNoteType | undefined) => {
     setNoteTypeState(next);
@@ -112,7 +109,7 @@ export function useOutboundNoteParams(): OutboundNoteParamsState {
       site: site ?? undefined,
       dateFrom: dateFrom ?? undefined,
       dateTo: dateTo ?? undefined,
-      search: debouncedSearch || undefined,
+      search: urlSearch || undefined,
       page,
       pageSize: 20,
     }),
@@ -124,7 +121,7 @@ export function useOutboundNoteParams(): OutboundNoteParamsState {
       site,
       dateFrom,
       dateTo,
-      debouncedSearch,
+      urlSearch,
       page,
     ],
   );

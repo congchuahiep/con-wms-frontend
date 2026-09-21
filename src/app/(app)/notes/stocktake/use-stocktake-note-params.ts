@@ -1,16 +1,16 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type {
   GetStocktakeNotesParams,
   StocktakeNoteStatus,
 } from "@/features/stocktake";
-
-const SEARCH_DEBOUNCE_MS = 300;
+import { useUrlSearchParam } from "@/hooks/use-url-search-param";
 
 interface StocktakeNoteParamsState {
   params: GetStocktakeNotesParams;
+  /** Giá trị search tức thời (chưa debounce) — dùng làm value cho ô input. */
   search: string;
   setWarehouse: (warehouse?: number) => void;
   setDateFrom: (date?: string) => void;
@@ -19,21 +19,22 @@ interface StocktakeNoteParamsState {
   setPage: (page: number) => void;
 }
 
+/**
+ * State tập trung cho bộ lọc + phân trang của trang Phiếu kiểm kê.
+ *
+ * - `search` sống trên URL (`?search=...`) — debounce 300ms rồi commit bằng
+ *   `router.replace` (hook `useUrlSearchParam`). Link ngoài lọc sẵn bằng mã.
+ */
 export function useStocktakeNoteParams(): StocktakeNoteParamsState {
-  const [search, setSearchState] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const {
+    value: urlSearch,
+    inputValue: search,
+    setInputValue: setSearch,
+  } = useUrlSearchParam("search");
   const [warehouse, setWarehouseState] = useState<number | undefined>();
   const [dateFrom, setDateFromState] = useState<string | undefined>(undefined);
   const [dateTo, setDateToState] = useState<string | undefined>(undefined);
   const [page, setPageState] = useState(1);
-
-  useEffect(() => {
-    const timer = setTimeout(
-      () => setDebouncedSearch(search),
-      SEARCH_DEBOUNCE_MS,
-    );
-    return () => clearTimeout(timer);
-  }, [search]);
 
   // Status sống trên URL (?status=...) — NoteStatusTabs ghi trực tiếp bằng router.push.
   const searchParams = useSearchParams();
@@ -48,10 +49,12 @@ export function useStocktakeNoteParams(): StocktakeNoteParamsState {
     setPageState(1);
   }
 
-  const setSearch = useCallback((next: string) => {
-    setSearchState(next);
+  // Search commit lên URL (gõ xong debounce hoặc link từ sổ kho) → về trang 1.
+  const prevSearchRef = useRef(urlSearch);
+  if (prevSearchRef.current !== urlSearch) {
+    prevSearchRef.current = urlSearch;
     setPageState(1);
-  }, []);
+  }
 
   const setWarehouse = useCallback((next: number | undefined) => {
     setWarehouseState(next);
@@ -78,11 +81,11 @@ export function useStocktakeNoteParams(): StocktakeNoteParamsState {
       warehouse: warehouse ?? undefined,
       dateFrom: dateFrom ?? undefined,
       dateTo: dateTo ?? undefined,
-      search: debouncedSearch || undefined,
+      search: urlSearch || undefined,
       page,
       pageSize: 20,
     }),
-    [status, warehouse, dateFrom, dateTo, debouncedSearch, page],
+    [status, warehouse, dateFrom, dateTo, urlSearch, page],
   );
 
   return {

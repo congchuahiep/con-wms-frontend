@@ -31,12 +31,22 @@ export function WarehouseSelectField<
 >(props: WarehouseSelectFieldProps<TSchema, TFieldPath>) {
   const { of, path, label, placeholder, disabled, required, className } = props;
 
-  const { data: warehouses = [] } = useGetWarehouses();
+  const { data: warehouses = [] } = useGetWarehouses({ includeSite: true });
 
-  const options = warehouses.map((warehouse) => ({
-    value: String(warehouse.id),
-    label: `${warehouse.code} - ${warehouse.name}`,
-  }));
+  // Kho trung tâm trước, kho công trường sau (nhãn kèm mã CT để nhận diện)
+  const options = warehouses
+    .slice()
+    .sort((a, b) => {
+      if (a.site && !b.site) return 1;
+      if (!a.site && b.site) return -1;
+      return a.code.localeCompare(b.code);
+    })
+    .map((warehouse) => ({
+      value: String(warehouse.id),
+      label:
+        `${warehouse.code} - ${warehouse.name}` +
+        (warehouse.site ? ` (${warehouse.site.code})` : ""),
+    }));
 
   return (
     <SelectField

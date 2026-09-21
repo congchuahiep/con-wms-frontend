@@ -6,8 +6,9 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useMemo } from "react";
-import { useGetStockBalances } from "@/features/stock";
+import { aggregateStockBalances, useGetStockBalances } from "@/features/stock";
 import { columns } from "./columns";
+import { InventoryDetailExpanded } from "./detail-expanded";
 import { InventoryFilterBar } from "./filter-bar";
 import { InventoryFooter } from "./footer";
 import { InventoryHeader } from "./header";
@@ -15,25 +16,24 @@ import { InventoryTableSection } from "./table-section";
 import { useStockParams } from "./use-stock-params";
 
 export default function InventoryPage() {
-  const {
-    params,
-    search,
-    setSearch,
-    setWarehouse,
-    setCategory,
-    setStockStatus,
-  } = useStockParams();
+  const { params, search, setSearch, setCategory, setStockStatus } =
+    useStockParams();
 
   const {
-    data: items = [],
+    data: balances = [],
     isFetching,
     isPlaceholderData,
   } = useGetStockBalances(params);
 
+  // Backend trả theo (warehouse, material) → gộp theo vật tư: mỗi dòng là
+  // tổng tồn ở mọi kho, kèm danh sách kho đang giữ hàng.
+  const items = useMemo(() => aggregateStockBalances(balances), [balances]);
+
   const totalValue = useMemo(
     () =>
       items.reduce(
-        (sum, item) => sum + (item.stockValue ? Number(item.stockValue) : 0),
+        (sum, item) =>
+          sum + (item.totalStockValue ? Number(item.totalStockValue) : 0),
         0,
       ),
     [items],
@@ -44,6 +44,7 @@ export default function InventoryPage() {
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getRowCanExpand: () => true,
   });
 
   return (
@@ -52,8 +53,6 @@ export default function InventoryPage() {
       <InventoryFilterBar
         categoryFilter={params.category ?? null}
         onCategoryChange={setCategory}
-        warehouseFilter={params.warehouse ?? null}
-        onWarehouseChange={setWarehouse}
         stockStatus={params.hasStock ? "inStock" : "all"}
         onStockStatusChange={setStockStatus}
         search={search}
@@ -62,6 +61,9 @@ export default function InventoryPage() {
       <InventoryTableSection
         table={table}
         isRefreshing={isFetching && isPlaceholderData}
+        renderExpandedRow={(row) => (
+          <InventoryDetailExpanded summary={row.original} />
+        )}
       />
       <InventoryFooter totalRows={items.length} totalValue={totalValue} />
     </div>

@@ -62,6 +62,8 @@ export function useAddOutboundNote(
       toWarehouseId: null,
       note: "",
       lines: [{ materialId: null, quantity: "0", note: "" }],
+      // Prefill từ trang công trường (vd: siteId + kho công trường)
+      ...(options?.initialInput ?? {}),
     },
     mutationFn: async (data) => {
       const r = await authApi.post<OutboundNoteDetail>(

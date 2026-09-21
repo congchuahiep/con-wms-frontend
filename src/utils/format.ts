@@ -14,6 +14,18 @@ export function formatDecimal(
   });
 }
 
+/**
+ * Format tiền tệ theo locale vi-VN kèm hậu tố "đ".
+ * null/undefined/rỗng → "—" (không kèm "đ" — "không có giá" ≠ "0 đ").
+ */
+export function formatMoney(
+  value: number | string | null | undefined,
+  maxFractionDigits = 2,
+): string {
+  if (value === null || value === undefined || value === "") return "—";
+  return `${formatDecimal(value, maxFractionDigits)} đ`;
+}
+
 /** "2026-08-13" → "13/08/2026" */
 export function formatDate(date: string | null | undefined): string {
   if (!date) return "-";
@@ -32,4 +44,14 @@ export function formatDateTime(iso: string | null | undefined): string {
     minute: "2-digit",
   });
   return `${time} ${date.toLocaleDateString("vi-VN")}`;
+}
+
+/**
+ * Cắt số 0 thừa ở phần thập phân của chuỗi Decimal do backend trả
+ * (DecimalField(14,3) luôn gồm 3 chữ số: "3.000", "20000.000").
+ * Dùng khi prefill vào input form: "3.000" → "3", "1.500" → "1.5", "0.000" → "0".
+ */
+export function normalizeDecimal(value: string | null | undefined): string {
+  if (value === null || value === undefined || value === "") return "";
+  return value.replace(/\.?0+$/, "") || "0";
 }

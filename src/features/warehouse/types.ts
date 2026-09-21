@@ -1,7 +1,16 @@
+export type SimpleSiteRef = {
+  id: number;
+  code: string;
+  name: string;
+};
+
 export type Warehouse = {
   id: number;
   code: string;
   name: string;
+
+  /** Công trường sở hữu — khác null nghĩa là kho công trường (tự động tạo). */
+  site: SimpleSiteRef | null;
 
   address: string;
   latitude: number | null;

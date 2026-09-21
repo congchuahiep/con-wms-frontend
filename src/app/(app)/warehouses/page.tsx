@@ -2,6 +2,7 @@
 
 import { WarehouseIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -13,11 +14,13 @@ import {
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetWarehouses, type Warehouse } from "@/features/warehouse";
+import { cn } from "@/lib/utils";
 import WarehouseHeader from "./header";
 import { WarehouseItem } from "./item";
 
 export default function WarehousesPage() {
-  const { data: warehouses, status } = useGetWarehouses();
+  // Hiển thị đủ kho: kho trung tâm + kho công trường (phân biệt bằng badge)
+  const { data: warehouses, status } = useGetWarehouses({ includeSite: true });
 
   const content = () => {
     switch (status) {
@@ -60,12 +63,50 @@ function WarehouseList({ warehouses }: { warehouses: Warehouse[] }) {
       </Empty>
     );
 
+  const central = warehouses.filter((w) => !w.site);
+  const site = warehouses.filter((w) => w.site);
+
   return (
-    <div className="flex-1 flex flex-col gap-4 p-4">
-      {warehouses.map((warehouse) => (
-        <WarehouseItem key={warehouse.id} warehouse={warehouse} />
-      ))}
+    <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-4 space-y-12">
+      <WarehouseSection title="Kho thường" count={central.length}>
+        {central.map((warehouse) => (
+          <WarehouseItem key={warehouse.id} warehouse={warehouse} />
+        ))}
+      </WarehouseSection>
+
+      {site.length > 0 && (
+        <WarehouseSection
+          title="Kho công trường"
+          count={site.length}
+        >
+          {site.map((warehouse) => (
+            <WarehouseItem key={warehouse.id} warehouse={warehouse} />
+          ))}
+        </WarehouseSection>
+      )}
     </div>
+  );
+}
+
+function WarehouseSection({
+  title,
+  count,
+  className,
+  children,
+}: {
+  title: string;
+  count: number;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className={cn("flex flex-col gap-3", className)}>
+      <div className="flex items-baseline justify-between border-b pb-2">
+        <h2 className="text-xl font-semibold">{title}</h2>
+        <span className="text-xs text-muted-foreground">{count} kho</span>
+      </div>
+      <div className="flex flex-col gap-4">{children}</div>
+    </section>
   );
 }
 

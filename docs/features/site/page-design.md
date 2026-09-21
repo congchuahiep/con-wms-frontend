@@ -1,13 +1,13 @@
 # Page Design — Site (Công Trường)
 
-> Status: 🔵 Đang thiết kế — chờ duyệt
-> Data layer: ✅ đã có (`src/features/site/`). Tham khảo: `src/app/(app)/suppliers/` (table), `src/app/(app)/material-categories/` (dialog animation).
+> Status: ✅ Hoàn thành (UI đã triển khai tại `src/app/(app)/sites/`)
+> Data layer: ✅ đã có (`src/features/site/`). Tham khảo: `src/app/(app)/suppliers/` (table), `src/app/(app)/material-categories/` (dialog animation), `src/app/(app)/inbound-notes/` (filter select).
 
 ## 1. Phạm vi
 
 | # | Thành phần | Loại | Route |
 |---|------------|------|-------|
-| P1 | Danh sách công trường | `table` không phân trang | `/(app)/sites` hoặc `/(app)/master/sites` — hoặc giữ như warehouse/supplier top-level |
+| P1 | Danh sách công trường | `table` không phân trang | `/(app)/sites` |
 | P2 | Create dialog | form dialog | — |
 | P3 | Edit dialog | form dialog | — |
 | P4 | Vô hiệu hóa (soft delete) | DeleteConfirmDialog | — |
@@ -19,7 +19,8 @@ Master data — admin write, mọi role đọc.
 ### 2.1 Phân tích UX
 - Ai dùng: quản lý/admin tạo công trường để phiếu xuất `issue_for_use` chọn FK.
 - Primary: [+ Thêm công trường]
-- Không phân trang, filter `?search=&is_active=` (default true).
+- Không phân trang, filter `?search=&isActive=` (frontend gửi camelCase theo convention dự án — proxy forward thẳng).
+- Status filter: 2 trạng thái — `Đang hoạt động` (isActive=true) / `Đã vô hiệu hóa` (isActive=false), mặc định "Đang hoạt động".
 
 ### 2.2 Mockup
 
@@ -27,7 +28,7 @@ Master data — admin write, mọi role đọc.
 ┌──────────────────────────────────────────────────────────────────────┐
 │ [▣] Công trường   12 công trường                  [+ Thêm công trường] │ ← header
 ├──────────────────────────────────────────────────────────────────────┤
-│ [🔍 Tìm mã/tên…]                                  [Trạng thái: Đang HĐ ▾] │ ← filter-bar
+│ [Trạng thái: Đang HĐ ▾]              [🔍 Tìm mã/tên…]                  │ ← filter-bar
 ├──────────────────────────────────────────────────────────────────────┤
 │ Mã        Tên                      Phụ trách   SĐT         Địa chỉ         Ghi chú   │
 │ CT_RG     Cầu Rạch Giá             Anh Bảy     0901…       QL80…           …        ⋮ │
@@ -45,8 +46,10 @@ Master data — admin write, mọi role đọc.
 | Phụ trách | manager | 180/140 |
 | SĐT | phone | 140/110 |
 | Địa chỉ | address | 220/160 |
-| Ghi chú | note | flexible |
+| Ghi chú | note | 220/160 |
 | Actions | — | 80 |
+
+> Ghi chú ban đầu design "flexible", nhưng trong `table-fixed` chỉ cột **cuối cùng** mới được `width: auto` (DataTable). Vì cột cuối là Actions nên `note` cần `size` cố định để không bị co về 0.
 
 ### 2.4 Component tree
 
@@ -77,11 +80,11 @@ src/app/(app)/sites/
 
 ## 3. P2/P3 — Create/Edit Dialog
 
-Dialog `max-w-lg`, fields: code*, name*, manager, phone, address, note. Dùng `InputField`/`TextareaField` với `SiteSchema`. Edit dùng `usePartialUpdate` pattern + pre-fill child mount.
+Dialog `w-lg` (design: max-w-lg), fields: code*, name*, manager, phone, address, note. Dùng `InputField`/`TextareaField` với `SiteSchema`. Edit dùng `usePartialUpdate` pattern + pre-fill child mount, initialInput từ `toSiteInput(site)`.
 
 ## 4. Checklist
-- [ ] P1 table (page + header/filter/columns/table-section/footer/params)
-- [ ] P2 create-dialog
-- [ ] P3 edit-dialog
-- [ ] P4 soft delete
-- [ ] Sidebar nav nếu cần
+- [x] P1 table (page + header/filter/columns/table-section/footer/params)
+- [x] P2 create-dialog
+- [x] P3 edit-dialog
+- [x] P4 soft delete
+- [x] Sidebar nav — mục "Công trường" (`/sites`, icon ConstructionIcon) trong nhóm **Nghiệp vụ** (sau "Phiếu chứng từ")

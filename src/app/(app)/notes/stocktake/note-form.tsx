@@ -27,10 +27,10 @@ import { authApi } from "@/configs/api";
 import { materialKeys } from "@/configs/querykeys";
 import type { Material, SimpleMaterial } from "@/features/material";
 import { MaterialComboboxField } from "@/features/material";
+import type { StocktakeNoteSchema } from "@/features/stocktake";
 import { WarehouseSelectField } from "@/features/warehouse";
 import type { Paginated } from "@/types";
 import { formatDecimal } from "@/utils/format";
-import type { StocktakeNoteSchema } from "@/features/stocktake";
 
 interface NoteFormProps {
   form: FormStore<typeof StocktakeNoteSchema>;
@@ -157,7 +157,9 @@ export function NoteForm({
             <Alert>
               <span className="text-sm text-muted-foreground">
                 Tồn hiện tại lấy động từ{" "}
-                <code>/api/stock/?warehouse={String(warehouseField.input)}</code>{" "}
+                <code>
+                  /api/stock/?warehouse={String(warehouseField.input)}
+                </code>{" "}
                 — dùng để đối chiếu chênh lệch, không lưu vào phiếu.
               </span>
             </Alert>

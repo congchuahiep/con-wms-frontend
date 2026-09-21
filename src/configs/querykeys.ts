@@ -6,6 +6,7 @@ export const authKeys = {
 export const warehouseKeys = {
   all: ["warehouse"] as const,
   list: () => [...warehouseKeys.all, "list"] as const,
+  detail: (id: number) => [...warehouseKeys.all, "detail", id] as const,
 };
 
 export const categoryKeys = {
@@ -59,6 +60,7 @@ export const siteKeys = {
   list: () => [...siteKeys.all, "list"] as const,
   filteredList: (params?: unknown) => [...siteKeys.list(), params] as const,
   detail: (id: number) => [...siteKeys.all, "detail", id] as const,
+  requirements: (id: number) => [...siteKeys.all, "requirements", id] as const,
 };
 
 export const outboundNoteKeys = {

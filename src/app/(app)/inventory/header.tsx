@@ -41,7 +41,7 @@ export function InventoryHeader({
         </div>
         <h1 className="font-semibold tracking-tight">Tồn kho</h1>
         <p className="text-sm text-muted-foreground">
-          {totalRows} dòng tồn kho &middot; {formatDecimal(totalValue, 2)} đ
+          {totalRows} mặt hàng &middot; {formatDecimal(totalValue, 2)} đ
         </p>
       </div>
       <div className="flex items-center gap-2">

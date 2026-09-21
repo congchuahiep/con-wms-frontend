@@ -59,6 +59,8 @@ export function useAddStocktakeNote(
       warehouseId: null,
       note: "",
       lines: [{ materialId: null, difference: "0", reason: "", note: "" }],
+      // Prefill từ trang công trường (vd: warehouseId = kho công trường)
+      ...(options?.initialInput ?? {}),
     },
     mutationFn: async (data) => {
       const r = await authApi.post<StocktakeNoteDetail>(

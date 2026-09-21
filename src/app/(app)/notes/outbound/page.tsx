@@ -1,7 +1,8 @@
 "use client";
 
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "@/components/ui/toast";
@@ -18,6 +19,7 @@ import { EditOutboundNoteDialog } from "./edit-dialog";
 import { OutboundNotesFilterBar } from "./filter-bar";
 import { OutboundNotesFooter } from "./footer";
 import { OutboundNotesHeader } from "./header";
+import { OutboundNotePrintDialog } from "./print-dialog";
 import { OutboundNotesTableSection } from "./table-section";
 import { useOutboundNoteParams } from "./use-outbound-note-params";
 import { VoidOutboundNoteDialog } from "./void-dialog";
@@ -42,6 +44,7 @@ export default function OutboundNotesPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [printingNoteId, setPrintingNoteId] = useState<number | null>(null);
   const [voidingNote, setVoidingNote] = useState<OutboundNote | null>(null);
   const [finalizingNote, setFinalizingNote] = useState<OutboundNote | null>(
     null,
@@ -53,6 +56,29 @@ export default function OutboundNotesPage() {
   const { mutateAsync: finalizeNote, isPending: isFinalizing } =
     useFinalizeOutboundNote(finalizingNote?.id ?? 0);
 
+  // Prefill khi mở từ trang Công trường (?siteId=&warehouseId=)
+  const searchParams = useSearchParams();
+  const createPrefill = useMemo(() => {
+    const prefill: { siteId?: number; warehouseId?: number } = {};
+    const siteRaw = searchParams.get("siteId");
+    const siteId = siteRaw ? Number(siteRaw) : Number.NaN;
+    if (Number.isInteger(siteId) && siteId > 0) prefill.siteId = siteId;
+    const whRaw = searchParams.get("warehouseId");
+    const warehouseId = whRaw ? Number(whRaw) : Number.NaN;
+    if (Number.isInteger(warehouseId) && warehouseId > 0)
+      prefill.warehouseId = warehouseId;
+    return Object.keys(prefill).length > 0 ? prefill : undefined;
+  }, [searchParams]);
+
+  // Đến với prefill (từ trang Công trường) → tự mở dialog tạo phiếu 1 lần
+  const didAutoOpenRef = useRef(false);
+  useEffect(() => {
+    if (createPrefill && !didAutoOpenRef.current) {
+      didAutoOpenRef.current = true;
+      setCreateOpen(true);
+    }
+  }, [createPrefill]);
+
   const tableColumns = useMemo(
     () =>
       createColumns({
@@ -60,6 +86,7 @@ export default function OutboundNotesPage() {
         onDelete: setDeleteTarget,
         onFinalize: setFinalizingNote,
         onVoid: setVoidingNote,
+        onPrint: (note) => setPrintingNoteId(note.id),
       }),
     [],
   );
@@ -113,6 +140,11 @@ export default function OutboundNotesPage() {
       <CreateOutboundNoteDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
+      />
+
+      <OutboundNotePrintDialog
+        noteId={printingNoteId}
+        onClose={() => setPrintingNoteId(null)}
       />
 
       <EditOutboundNoteDialog

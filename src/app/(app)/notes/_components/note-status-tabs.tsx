@@ -89,7 +89,7 @@ function NoteStatusTabsInner({ noteType }: NoteStatusTabsProps) {
             {item.label}
 
             {item.status === "draft" && draftCount > 0 && (
-              <Badge className="p-0 size-5" variant="warning" >
+              <Badge className="p-0 size-5" variant="warning">
                 {draftCount}
               </Badge>
             )}

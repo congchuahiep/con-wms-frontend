@@ -31,16 +31,19 @@ export function VoidStocktakeNoteDialog({
     if (note) setOpen(true);
   }, [note]);
 
-  const { form, handleSubmit, isPending } = useVoidStocktakeNote(note?.id ?? 0, {
-    onSuccess: () => {
-      toast.add({
-        type: "success",
-        title: "Đã hủy phiếu",
-        description: "Tồn kho đã được đảo dấu.",
-      });
-      setOpen(false);
+  const { form, handleSubmit, isPending } = useVoidStocktakeNote(
+    note?.id ?? 0,
+    {
+      onSuccess: () => {
+        toast.add({
+          type: "success",
+          title: "Đã hủy phiếu",
+          description: "Tồn kho đã được đảo dấu.",
+        });
+        setOpen(false);
+      },
     },
-  });
+  );
 
   return (
     <Dialog

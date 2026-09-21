@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Building02Icon,
   Package01Icon,
   Search01Icon,
   Tag02FreeIcons,
@@ -17,13 +16,10 @@ import {
 } from "@/components/ui/select";
 import type { MaterialCategory } from "@/features/material-category";
 import { useGetCategories } from "@/features/material-category";
-import { useGetWarehouses } from "@/features/warehouse";
 
 interface InventoryFilterBarProps {
   categoryFilter: number | null;
   onCategoryChange: (id: number | null) => void;
-  warehouseFilter: number | null;
-  onWarehouseChange: (id: number | null) => void;
   stockStatus: "all" | "inStock";
   onStockStatusChange: (status: "all" | "inStock") => void;
   search: string;
@@ -46,20 +42,15 @@ function flattenCategories(
 export function InventoryFilterBar({
   categoryFilter,
   onCategoryChange,
-  warehouseFilter,
-  onWarehouseChange,
   stockStatus,
   onStockStatusChange,
   search,
   onSearchChange,
 }: InventoryFilterBarProps) {
   const { data: categories = [] } = useGetCategories();
-  const { data: warehouses = [] } = useGetWarehouses();
 
   const categoryValue =
     categoryFilter === null ? ALL_VALUE : String(categoryFilter);
-  const warehouseValue =
-    warehouseFilter === null ? ALL_VALUE : String(warehouseFilter);
 
   const categoryOptions = flattenCategories(categories);
 
@@ -87,31 +78,6 @@ export function InventoryFilterBar({
               {categoryOptions.map((cat) => (
                 <SelectItem key={cat.id} value={String(cat.id)}>
                   {cat.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={warehouseValue}
-            onValueChange={(next) => {
-              if (next === null) return;
-              onWarehouseChange(next === ALL_VALUE ? null : Number(next));
-            }}
-          >
-            <SelectTrigger>
-              <HugeiconsIcon
-                icon={Building02Icon}
-                className="text-muted-foreground"
-              />
-              <span className="text-muted-foreground">Kho:</span>
-              <SelectValue placeholder="Tất cả kho" />
-            </SelectTrigger>
-            <SelectContent alignItemWithTrigger={false}>
-              <SelectItem value={ALL_VALUE}>Tất cả kho</SelectItem>
-              {warehouses.map((warehouse) => (
-                <SelectItem key={warehouse.id} value={String(warehouse.id)}>
-                  {warehouse.name}
                 </SelectItem>
               ))}
             </SelectContent>

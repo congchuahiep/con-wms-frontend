@@ -9,8 +9,8 @@ import { Alert } from "@/components/ui/alert";
 import { DataTable } from "@/components/ui/data-table";
 import { Spinner } from "@/components/ui/spinner";
 import {
-  type StocktakeNoteDetail,
   type StocktakeLine,
+  type StocktakeNoteDetail,
   useGetStocktakeNote,
 } from "@/features/stocktake";
 import { cn } from "@/lib/utils";

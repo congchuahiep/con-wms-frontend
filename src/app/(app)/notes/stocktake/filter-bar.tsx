@@ -43,7 +43,7 @@ export function StocktakeNotesFilterBar({
   search,
   onSearchChange,
 }: StocktakeNotesFilterBarProps) {
-  const { data: warehouses = [] } = useGetWarehouses();
+  const { data: warehouses = [] } = useGetWarehouses({ includeSite: true });
 
   return (
     <div className="border-b px-1 py-2">
@@ -95,7 +95,7 @@ export function StocktakeNotesFilterBar({
               placeholder="Từ ngày"
             />
 
-            <Button variant="ghost" size="icon">
+            <Button variant="muted" size="icon">
               <HugeiconsIcon icon={ArrowRight01Icon} />
             </Button>
 

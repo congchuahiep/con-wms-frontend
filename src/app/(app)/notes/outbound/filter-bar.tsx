@@ -68,7 +68,7 @@ export function OutboundNotesFilterBar({
   search,
   onSearchChange,
 }: OutboundNotesFilterBarProps) {
-  const { data: warehouses = [] } = useGetWarehouses();
+  const { data: warehouses = [] } = useGetWarehouses({ includeSite: true });
   const { data: sites = [] } = useGetSites();
 
   return (
@@ -76,7 +76,6 @@ export function OutboundNotesFilterBar({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Select
-            items={NOTE_TYPE_OPTIONS}
             value={noteTypeFilter ?? ALL_VALUE}
             onValueChange={(next) => {
               if (next === null) return;
@@ -92,7 +91,12 @@ export function OutboundNotesFilterBar({
                 strokeWidth={2}
               />
               <span className="text-muted-foreground">Loại:</span>
-              <SelectValue placeholder="Tất cả" />
+              <SelectValue placeholder="Tất cả">
+                {(value: string) =>
+                  NOTE_TYPE_OPTIONS.find((o) => o.value === value)?.label ??
+                  value
+                }
+              </SelectValue>
             </SelectTrigger>
 
             <SelectContent alignItemWithTrigger={false} className="w-3xs">
@@ -149,7 +153,9 @@ export function OutboundNotesFilterBar({
             }
             onValueChange={(next) => {
               if (next === null) return;
-              onToWarehouseChange(next === ALL_VALUE ? undefined : Number(next));
+              onToWarehouseChange(
+                next === ALL_VALUE ? undefined : Number(next),
+              );
             }}
           >
             <SelectTrigger>
@@ -186,7 +192,10 @@ export function OutboundNotesFilterBar({
             }}
           >
             <SelectTrigger>
-              <HugeiconsIcon icon={Building02Icon} className="text-emerald-700" />
+              <HugeiconsIcon
+                icon={Building02Icon}
+                className="text-emerald-700"
+              />
               <span className="text-muted-foreground">Công trường:</span>
               <SelectValue placeholder="Tất cả">
                 {(value: string) => {
@@ -219,7 +228,7 @@ export function OutboundNotesFilterBar({
               placeholder="Từ ngày"
             />
 
-            <Button variant="ghost" size="icon">
+            <Button variant="muted" size="icon">
               <HugeiconsIcon icon={ArrowRight01Icon} />
             </Button>
 

@@ -5,12 +5,14 @@ import {
   Book01Icon,
   Building02Icon,
   Chart01Icon,
-  Home01Icon,
+  ConstructionIcon,
+  HomeIcon,
   Invoice01Icon,
   Logout01Icon,
   Package01Icon,
   TagsIcon,
   TruckIcon,
+  WarehouseIcon,
   WeightIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -26,31 +28,30 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { useGetUserProfile, useLogout } from "@/features/auth";
-import { warehouses } from "@/lib/mock/data";
 
 const navItems = [
   {
+    name: "Trang chủ",
+    items: [{ title: "Tổng quan", url: "/", icon: HomeIcon }],
+  },
+  {
     name: "Nghiệp vụ",
     items: [
-      { title: "Tổng quan", url: "/", icon: Home01Icon },
       {
         title: "Kho",
         url: "/warehouses",
-        icon: Building02Icon,
+        icon: WarehouseIcon,
         isWarehouse: true,
       },
       { title: "Tồn kho", url: "/inventory", icon: Archive01Icon },
       { title: "Sổ kho", url: "/stock-movements", icon: Book01Icon },
       { title: "Phiếu chứng từ", url: "/notes", icon: Invoice01Icon },
+      { title: "Công trường", url: "/sites", icon: ConstructionIcon },
       { title: "Báo cáo", url: "/reports", icon: Chart01Icon },
     ],
   },
@@ -111,36 +112,6 @@ export function AppSidebar() {
                     item.url === "/"
                       ? pathname === "/"
                       : pathname.startsWith(item.url);
-
-                  if (item.isWarehouse) {
-                    return (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                          render={<Link href={item.url} />}
-                          isActive={isWarehouseActive}
-                        >
-                          <HugeiconsIcon icon={item.icon} strokeWidth={2} />
-                          <span>{item.title}</span>
-                        </SidebarMenuButton>
-
-                        <SidebarMenuSub>
-                          {warehouses.map((wh) => (
-                            <SidebarMenuSubItem key={wh.id}>
-                              <SidebarMenuSubButton
-                                render={<Link href={`/warehouses/${wh.id}`} />}
-                                isActive={pathname === `/warehouses/${wh.id}`}
-                              >
-                                {wh.name}
-                              </SidebarMenuSubButton>
-                              <SidebarMenuAction>
-                                {wh.itemCount}
-                              </SidebarMenuAction>
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      </SidebarMenuItem>
-                    );
-                  }
 
                   return (
                     <SidebarMenuItem key={item.title}>

@@ -76,6 +76,8 @@ export function useAddInboundNote(
           note: "",
         },
       ],
+      // Prefill từ trang công trường (vd: warehouseId = kho công trường)
+      ...(options?.initialInput ?? {}),
     },
     mutationFn: async (data) => {
       const response = await authApi.post<InboundNoteDetail>(

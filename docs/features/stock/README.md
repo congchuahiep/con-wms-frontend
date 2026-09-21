@@ -10,6 +10,7 @@
 |---|---|
 | [`data-model.md`](data-model.md) | TypeScript types, enums, design decisions |
 | [`api-spec.md`](api-spec.md) | API endpoints consumed, request/response spec |
+| [`api-change-request.md`](api-change-request.md) | Yêu cầu backend: `sourceNote` cho mọi loại dòng sổ kho |
 | [`implementation.md`](implementation.md) | Checklist triển khai |
 | [`page-design.md`](page-design.md) | Thiết kế UI: tồn kho + sổ kho |
 | [`change-log.md`](change-log.md) | Lịch sử thay đổi thiết kế |
@@ -22,10 +23,11 @@
 | Endpoints | `stock.balances`, `stock.movements` | ✅ Hoàn thành |
 | Query keys | `stockKeys` | ✅ Hoàn thành |
 | UI | Page tồn kho (`/inventory`) + sổ kho (`/stock-movements`) | ✅ Hoàn thành |
+| UI — expanded tồn theo kho (v1.6) | Expander trên trang Tồn kho: bảng con kho × số lượng | ✅ Hoàn thành |
 
 ## Trạng thái tổng thể
 
-✅ **Hoàn thành** — data layer + UI (tồn kho + sổ kho)
+✅ **Hoàn thành** — data layer + UI (tồn kho + sổ kho) + expanded row xem tồn theo kho (v1.6)
 
 ## Đặc điểm
 
@@ -34,3 +36,4 @@
 - Sổ kho (`/api/stock/movements/`) **phân trang** (backend page_size=50, sắp xếp `-date, -id`).
 - Mọi số decimal trả về dạng **string** (`"85.000"`, `"88000.00"`) — không parse sang `number` để tránh trôi dấu phẩy động.
 - `quantity` của dòng sổ kho **có dấu** (+ nhập, − xuất) — UI hiển thị dấu dựa vào giá trị, không dựa vào `movementType`.
+- Trang Tồn kho hỗ trợ **mở rộng từng dòng** (v1.6) để xem tồn theo từng kho — dữ liệu gộp sẵn ở `warehouseBalances`, không cần fetch thêm.

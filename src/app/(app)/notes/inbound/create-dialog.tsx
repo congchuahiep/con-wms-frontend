@@ -1,5 +1,7 @@
 "use client";
 
+import type { DeepPartial } from "@formisch/react";
+import type * as v from "valibot";
 import {
   Dialog,
   DialogContent,
@@ -7,19 +9,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useAddInboundNote } from "@/features/inbound-note";
+import {
+  type InboundNoteSchema,
+  useAddInboundNote,
+} from "@/features/inbound-note";
 import { NoteForm } from "./note-form";
 
 interface CreateInboundNoteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Prefill một phần form — vd: `warehouseId` = kho công trường khi mở từ trang Công trường. */
+  initialInput?: DeepPartial<v.InferInput<typeof InboundNoteSchema>>;
 }
 
 export function CreateInboundNoteDialog({
   open,
   onOpenChange,
+  initialInput,
 }: CreateInboundNoteDialogProps) {
   const { form, handleSubmit, isPending, resetForm } = useAddInboundNote({
+    initialInput,
     onSuccess: () => onOpenChange(false),
   });
 

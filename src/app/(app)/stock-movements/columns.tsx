@@ -1,13 +1,41 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import {
   getMovementTypeColorClass,
+  type SourceNoteRef,
+  type SourceNoteType,
   type StockMovement,
 } from "@/features/stock";
 import { cn } from "@/lib/utils";
-import { formatDate, formatDateTime, formatDecimal } from "@/utils/format";
+import {
+  formatDate,
+  formatDateTime,
+  formatDecimal,
+  formatMoney,
+} from "@/utils/format";
+
+/** URL cơ bản của 3 nhóm trang phiếu — đồng bộ `SourceNoteType`. */
+const SOURCE_NOTE_PATH: Record<SourceNoteType, string> = {
+  inbound: "/notes/inbound",
+  outbound: "/notes/outbound",
+  stocktake: "/notes/stocktake",
+};
+
+/**
+ * Link từ số phiếu trên sổ kho → trang phiếu tương ứng, search sẵn bằng mã phiếu.
+ * Dòng reversal (`reversalOf != null`) là phiếu đã HỦY → kèm `status=voided`
+ * để trang phiếu mặc định "Đã chốt" không bỏ sót.
+ */
+function sourceNoteHref(sourceNote: SourceNoteRef, voided: boolean): string {
+  const params = new URLSearchParams({
+    search: sourceNote.number,
+    ...(voided ? { status: "voided" } : {}),
+  });
+  return `${SOURCE_NOTE_PATH[sourceNote.noteType]}?${params.toString()}`;
+}
 
 export const columns: ColumnDef<StockMovement>[] = [
   {
@@ -53,32 +81,14 @@ export const columns: ColumnDef<StockMovement>[] = [
     accessorKey: "warehouse.name",
     header: "Kho",
     cell: ({ getValue }) => (
-      <span className="text-muted-foreground">{getValue<string>()}</span>
+      <div className="flex items-center">
+        <span className="text-muted-foreground truncate">
+          {getValue<string>()}
+        </span>
+      </div>
     ),
     size: 150,
     minSize: 110,
-  },
-  {
-    id: "quantity",
-    accessorKey: "quantity",
-    header: "Số lượng",
-    cell: ({ getValue }) => {
-      const quantity = getValue<string>();
-      const value = Number(quantity);
-      return (
-        <span
-          className={cn(
-            "block text-right tabular-nums font-medium",
-            value > 0 && "text-emerald-600",
-            value < 0 && "text-destructive",
-          )}
-        >
-          {value > 0 ? `+${formatDecimal(quantity)}` : formatDecimal(quantity)}
-        </span>
-      );
-    },
-    size: 110,
-    minSize: 90,
   },
   {
     id: "unitPrice",
@@ -86,22 +96,87 @@ export const columns: ColumnDef<StockMovement>[] = [
     header: "Đơn giá",
     cell: ({ getValue }) => (
       <span className="block text-right tabular-nums">
-        {formatDecimal(getValue<string | null>(), 2)}
+        {formatMoney(getValue<string | null>(), 2)}
       </span>
     ),
     size: 120,
     minSize: 100,
   },
   {
-    id: "inboundNote",
-    accessorKey: "inboundNote.number",
+    id: "quantity",
+    accessorKey: "quantity",
+    header: "Số lượng",
+    cell: ({ getValue, row }) => {
+      const quantity = getValue<string>();
+      const value = Number(quantity);
+      return (
+        <div className="flex items-center gap-1 justify-end">
+          <div
+            className={cn(
+              "block tabular-nums font-medium",
+              value > 0 && "text-emerald-600",
+              value < 0 && "text-destructive",
+            )}
+          >
+            {value > 0
+              ? `+${formatDecimal(quantity)}`
+              : formatDecimal(quantity)}{" "}
+          </div>
+          <div className="text-muted-foreground font-normal text-xs w-8">
+            {row.original.material.unit}
+          </div>
+        </div>
+      );
+    },
+    size: 150,
+    minSize: 90,
+  },
+  {
+    id: "amount",
+    accessorFn: (row) =>
+      row.unitPrice === null
+        ? null
+        : Number(row.quantity) * Number(row.unitPrice),
+    header: "Thành tiền",
+    cell: ({ row }) => {
+      const { quantity, unitPrice } = row.original;
+      if (unitPrice === null)
+        return (
+          <span className="block text-right tabular-nums text-muted-foreground">
+            —
+          </span>
+        );
+      const amount = Number(quantity) * Number(unitPrice);
+      return (
+        <span
+          className={cn(
+            "block text-right tabular-nums font-medium",
+            amount > 0 && "text-emerald-600",
+            amount < 0 && "text-destructive",
+          )}
+        >
+          {formatMoney(amount, 2)}
+        </span>
+      );
+    },
+    size: 160,
+    minSize: 110,
+  },
+  {
+    id: "sourceNote",
+    accessorKey: "sourceNote.number",
     header: "Phiếu",
-    cell: ({ getValue }) => {
-      const number = getValue<string | null>();
-      return number ? (
-        <span className="font-mono text-xs">{number}</span>
-      ) : (
-        <span className="text-muted-foreground">—</span>
+    cell: ({ row }) => {
+      const { sourceNote, reversalOf } = row.original;
+      if (!sourceNote) return <span className="text-muted-foreground">-</span>;
+      return (
+        <Link
+          href={sourceNoteHref(sourceNote, reversalOf !== null)}
+          title={`Mở ${sourceNote.number}`}
+          className="inline-flex items-center gap-1.5 hover:underline"
+        >
+          <code className="text-blue-800">{sourceNote.number}</code>
+        </Link>
       );
     },
     size: 170,
@@ -113,7 +188,7 @@ export const columns: ColumnDef<StockMovement>[] = [
     header: "Lý do",
     cell: ({ row }) => {
       const { reason, reversalOf } = row.original;
-      if (!reason) return <span className="text-muted-foreground">—</span>;
+      if (!reason) return <span className="text-muted-foreground">-</span>;
       return (
         <div className="flex items-center gap-1.5">
           {reversalOf !== null && (
@@ -127,7 +202,7 @@ export const columns: ColumnDef<StockMovement>[] = [
         </div>
       );
     },
-    size: 140,
+    size: 320,
     minSize: 100,
   },
   {
@@ -143,7 +218,7 @@ export const columns: ColumnDef<StockMovement>[] = [
   {
     id: "createdAt",
     accessorKey: "createdAt",
-    header: "Thời điểm",
+    header: "Thời điểm tạo",
     cell: ({ getValue }) => (
       <span className="text-muted-foreground tabular-nums">
         {formatDateTime(getValue<string>())}

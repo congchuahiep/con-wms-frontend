@@ -64,7 +64,7 @@ export function InboundNotesFilterBar({
   search,
   onSearchChange,
 }: InboundNotesFilterBarProps) {
-  const { data: warehouses = [] } = useGetWarehouses();
+  const { data: warehouses = [] } = useGetWarehouses({ includeSite: true });
   const { data: suppliers = [] } = useGetSuppliers();
 
   return (
@@ -72,7 +72,6 @@ export function InboundNotesFilterBar({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Select
-            items={NOTE_TYPE_OPTIONS}
             value={noteTypeFilter ?? ALL_VALUE}
             onValueChange={(next) => {
               if (next === null) return;
@@ -88,7 +87,12 @@ export function InboundNotesFilterBar({
                 strokeWidth={2}
               />
               <span className="text-muted-foreground">Loại:</span>
-              <SelectValue placeholder="Tất cả" />
+              <SelectValue placeholder="Tất cả">
+                {(value: string) =>
+                  NOTE_TYPE_OPTIONS.find((o) => o.value === value)?.label ??
+                  value
+                }
+              </SelectValue>
             </SelectTrigger>
 
             <SelectContent alignItemWithTrigger={false} className="w-3xs">
@@ -180,7 +184,7 @@ export function InboundNotesFilterBar({
               placeholder="Từ ngày"
             />
 
-            <Button variant="ghost" size="icon">
+            <Button variant="muted" size="icon">
               <HugeiconsIcon icon={ArrowRight01Icon} />
             </Button>
 

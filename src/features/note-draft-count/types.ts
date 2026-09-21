@@ -1,4 +1,7 @@
-/** Số lượng phiếu nháp (draft) — GET /api/draft-count/ */
+/**
+ * Số lượng phiếu nháp (draft) — GET /api/draft-count/.
+ * Backend (CamelCaseJSONRenderer) trả key camelCase.
+ */
 export interface DraftNoteCount {
   inboundNotes: number;
   outboundNotes: number;

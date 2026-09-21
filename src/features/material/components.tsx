@@ -24,6 +24,7 @@ import {
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { InputGroupAddon } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
+import type { SimpleUnit } from "@/features/unit";
 import { cn } from "@/lib/utils";
 import { useGetMaterials } from "./services";
 import type { SimpleMaterial } from "./types";
@@ -34,8 +35,10 @@ function toSimpleMaterial(m: {
   id: number;
   code: string;
   name: string;
+  unit?: SimpleUnit | string;
 }): SimpleMaterial {
-  return { id: m.id, code: m.code, name: m.name };
+  const unit = typeof m.unit === "string" ? m.unit : (m.unit?.code ?? "");
+  return { id: m.id, code: m.code, name: m.name, unit };
 }
 
 function formatMaterialLabel(m: { code: string; name: string }): string {
@@ -200,6 +203,7 @@ type MaterialSelectFieldProps<
   className?: string;
   initialItems?: SimpleMaterial[];
   noField?: boolean;
+  inputClassName?: string;
 };
 
 /** Phiên bản Formisch field của MaterialCombobox — dùng trong form (of + path). */
@@ -217,6 +221,7 @@ export function MaterialComboboxField<
     className,
     initialItems,
     noField,
+    inputClassName,
   } = props;
 
   return (
@@ -238,6 +243,7 @@ export function MaterialComboboxField<
             }
             placeholder={placeholder}
             disabled={disabled}
+            className={inputClassName}
             invalid={field.errors ? true : undefined}
             initialItems={initialItems}
           />

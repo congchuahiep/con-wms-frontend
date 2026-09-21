@@ -1,5 +1,105 @@
 import type { InboundNoteType } from "../inbound-note";
-import type { MovementType } from "./types";
+import type {
+  MovementType,
+  SourceNoteType,
+  StockBalance,
+  StockBalanceSummary,
+  StockBalanceWarehouse,
+} from "./types";
+
+/**
+ * Cộng chuỗi decimal theo scale cố định bằng số nguyên mở rộng — tránh trôi
+ * dấu phẩy động của Number (`0.001 + 0.001 !== 0.002`). Hỗ trợ 1 dấu trừ đầu;
+ * phần thập phân ngắn được đệm 0, dài bị cắt theo scale. Nếu `values` rỗng
+ * trả về "0" + scale số 0.
+ */
+function sumDecimalStrings(values: string[], scale: number): string {
+  const factor = 10 ** scale;
+  const total = values.reduce((acc, value) => {
+    const negative = value.startsWith("-");
+    const unsigned = negative ? value.slice(1) : value;
+    const [intPart, rawFracPart = ""] = unsigned.split(".");
+    const fracPart = rawFracPart.padEnd(scale, "0").slice(0, scale);
+    const scaled =
+      ((Number.parseInt(intPart, 10) || 0) * factor +
+        (Number.parseInt(fracPart, 10) || 0)) *
+      (negative ? -1 : 1);
+    return acc + scaled;
+  }, 0);
+
+  const absolute = Math.abs(total);
+  const intPart = Math.floor(absolute / factor).toString();
+  const fracPart = String(absolute % factor).padStart(scale, "0");
+  return `${total < 0 ? "-" : ""}${intPart}.${fracPart}`;
+}
+
+/**
+ * Gộp mảng tồn kho theo (warehouse, material) → danh sách theo vật tư: mỗi
+ * vật tư đúng 1 dòng, `totalQuantity`/`totalStockValue` là tổng ở mọi kho,
+ * `warehouseBalances` = tồn theo từng kho đang giữ hàng (quantity ≠ 0). Giữ
+ * thứ tự xuất hiện đầu tiên của backend. Dùng cho trang Tồn kho (view chi
+ * tiết theo kho nằm ở expanded row + trang warehouse detail).
+ */
+export function aggregateStockBalances(
+  balances: StockBalance[],
+): StockBalanceSummary[] {
+  const groups = new Map<
+    number,
+    {
+      material: StockBalance["material"];
+      unit: StockBalance["unit"];
+      quantities: string[];
+      values: string[];
+      maxPrice: number | null;
+      warehouseBalances: Map<number, StockBalanceWarehouse>;
+    }
+  >();
+
+  for (const balance of balances) {
+    let group = groups.get(balance.material.id);
+    if (!group) {
+      group = {
+        material: balance.material,
+        unit: balance.unit,
+        quantities: [],
+        values: [],
+        maxPrice: null,
+        warehouseBalances: new Map(),
+      };
+      groups.set(balance.material.id, group);
+    }
+
+    group.quantities.push(balance.quantity);
+
+    if (balance.stockValue !== null) group.values.push(balance.stockValue);
+
+    const price =
+      balance.lastPurchasePrice === null
+        ? null
+        : Number(balance.lastPurchasePrice);
+    if (price !== null && (group.maxPrice === null || price > group.maxPrice)) {
+      group.maxPrice = price;
+    }
+
+    if (Number(balance.quantity) !== 0) {
+      group.warehouseBalances.set(balance.warehouse.id, {
+        warehouse: balance.warehouse,
+        quantity: balance.quantity,
+      });
+    }
+  }
+
+  return [...groups.values()].map((group) => ({
+    material: group.material,
+    unit: group.unit,
+    totalQuantity: sumDecimalStrings(group.quantities, 3),
+    lastPurchasePrice:
+      group.maxPrice === null ? null : group.maxPrice.toFixed(2),
+    totalStockValue:
+      group.values.length > 0 ? sumDecimalStrings(group.values, 2) : null,
+    warehouseBalances: [...group.warehouseBalances.values()],
+  }));
+}
 
 /**
  * Màu badge cho từng loại dòng sổ kho (dùng ở tồn kho + sổ kho).
@@ -58,6 +158,16 @@ export function getInboundNoteTypeColorClass(type: InboundNoteType): string {
     "bg-muted text-muted-foreground border-border"
   );
 }
+
+/**
+ * Mã ngắn hiển thị loại phiếu nguồn (badge cột "Phiếu" ở Sổ kho) — PN/PX/PK.
+ * Dòng nhập do điều chuyển cũng hiện PX (nguồn là phiếu xuất điều chuyển).
+ */
+export const SOURCE_NOTE_TYPE_SHORT_CODE: Record<SourceNoteType, string> = {
+  inbound: "PN",
+  outbound: "PX",
+  stocktake: "PK",
+};
 
 /**
  * Format số lượng có dấu: "100.000" → "+100.000", "-5.500" giữ nguyên.

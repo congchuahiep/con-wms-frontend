@@ -13,7 +13,7 @@ import {
   type InboundNoteLine,
   useGetInboundNote,
 } from "@/features/inbound-note";
-import { formatDateTime, formatDecimal } from "@/utils/format";
+import { formatDateTime, formatDecimal, formatMoney } from "@/utils/format";
 
 interface InboundNoteDetailExpandedProps {
   noteId: number;
@@ -83,7 +83,7 @@ const LINE_COLUMNS: ColumnDef<InboundNoteLine>[] = [
     header: "Đơn giá",
     cell: ({ getValue }) => (
       <span className="block text-right tabular-nums">
-        {formatDecimal(getValue<string>(), 2)}
+        {formatMoney(getValue<string>(), 2)}
       </span>
     ),
     size: 120,
@@ -94,7 +94,7 @@ const LINE_COLUMNS: ColumnDef<InboundNoteLine>[] = [
     header: "Thành tiền",
     cell: ({ row }) => (
       <span className="block text-right tabular-nums font-medium">
-        {formatDecimal(
+        {formatMoney(
           Number(row.original.quantity) * Number(row.original.unitPrice),
           2,
         )}

@@ -35,6 +35,9 @@ export const authEndpoints = {
   warehouses: {
     list: "/warehouses/",
     create: "/warehouses/",
+    detail: (id: number) => `/warehouses/${id}/`,
+    update: (id: number) => `/warehouses/${id}/`,
+    delete: (id: number) => `/warehouses/${id}/`,
   },
   categories: {
     list: "/categories/",
@@ -87,6 +90,8 @@ export const authEndpoints = {
     detail: (id: number) => `/sites/${id}/`,
     update: (id: number) => `/sites/${id}/`,
     delete: (id: number) => `/sites/${id}/`,
+    requirements: (id: number) => `/sites/${id}/requirements/`,
+    settle: (id: number) => `/sites/${id}/settle/`,
   },
   outboundNotes: {
     list: "/outbound-notes/",

@@ -1,7 +1,8 @@
 "use client";
 
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "@/components/ui/toast";
@@ -18,6 +19,7 @@ import { EditStocktakeNoteDialog } from "./edit-dialog";
 import { StocktakeNotesFilterBar } from "./filter-bar";
 import { StocktakeNotesFooter } from "./footer";
 import { StocktakeNotesHeader } from "./header";
+import { StocktakeNotePrintDialog } from "./print-dialog";
 import { StocktakeNotesTableSection } from "./table-section";
 import { useStocktakeNoteParams } from "./use-stocktake-note-params";
 import { VoidStocktakeNoteDialog } from "./void-dialog";
@@ -39,6 +41,7 @@ export default function StocktakeNotesPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [printingNoteId, setPrintingNoteId] = useState<number | null>(null);
   const [voidingNote, setVoidingNote] = useState<StocktakeNote | null>(null);
   const [finalizingNote, setFinalizingNote] = useState<StocktakeNote | null>(
     null,
@@ -50,6 +53,23 @@ export default function StocktakeNotesPage() {
   const { mutateAsync: finalizeNote, isPending: isFinalizing } =
     useFinalizeStocktakeNote(finalizingNote?.id ?? 0);
 
+  // Prefill khi mở từ trang Công trường (?warehouseId=...)
+  const searchParams = useSearchParams();
+  const createPrefill = useMemo(() => {
+    const raw = searchParams.get("warehouseId");
+    const n = raw ? Number(raw) : Number.NaN;
+    return Number.isInteger(n) && n > 0 ? { warehouseId: n } : undefined;
+  }, [searchParams]);
+
+  // Đến với prefill (từ trang Công trường) → tự mở dialog tạo phiếu 1 lần
+  const didAutoOpenRef = useRef(false);
+  useEffect(() => {
+    if (createPrefill && !didAutoOpenRef.current) {
+      didAutoOpenRef.current = true;
+      setCreateOpen(true);
+    }
+  }, [createPrefill]);
+
   const tableColumns = useMemo(
     () =>
       createColumns({
@@ -57,6 +77,7 @@ export default function StocktakeNotesPage() {
         onDelete: setDeleteTarget,
         onFinalize: setFinalizingNote,
         onVoid: setVoidingNote,
+        onPrint: (note) => setPrintingNoteId(note.id),
       }),
     [],
   );
@@ -104,6 +125,11 @@ export default function StocktakeNotesPage() {
       <CreateStocktakeNoteDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
+      />
+
+      <StocktakeNotePrintDialog
+        noteId={printingNoteId}
+        onClose={() => setPrintingNoteId(null)}
       />
 
       <EditStocktakeNoteDialog

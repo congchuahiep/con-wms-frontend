@@ -94,11 +94,18 @@ function ToWarehouseSelectFieldInline<T extends FormStore<any>>({
   path: any;
   required?: boolean;
 }) {
-  const { data: warehouses = [] } = useGetWarehouses();
-  const options = warehouses.map((w) => ({
-    value: String(w.id),
-    label: `${w.code} - ${w.name}`,
-  }));
+  const { data: warehouses = [] } = useGetWarehouses({ includeSite: true });
+  const options = warehouses
+    .slice()
+    .sort((a, b) => {
+      if (a.site && !b.site) return 1;
+      if (!a.site && b.site) return -1;
+      return a.code.localeCompare(b.code);
+    })
+    .map((w) => ({
+      value: String(w.id),
+      label: `${w.code} - ${w.name}${w.site ? ` (${w.site.code})` : ""}`,
+    }));
   return (
     <SelectField
       of={of}

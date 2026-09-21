@@ -1,11 +1,41 @@
 "use client";
 
+import { ChevronDownIcon, ChevronRightIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { StockBalance } from "@/features/stock";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import type { StockBalanceSummary } from "@/features/stock";
 import { cn } from "@/lib/utils";
-import { formatDecimal } from "@/utils/format";
+import { formatDecimal, formatMoney } from "@/utils/format";
 
-export const columns: ColumnDef<StockBalance>[] = [
+export const columns: ColumnDef<StockBalanceSummary>[] = [
+  {
+    id: "expander",
+    header: "",
+    size: 40,
+    maxSize: 40,
+    enableSorting: false,
+    cell: ({ row }) => (
+      <Button
+        size="icon-xs"
+        variant="ghost"
+        aria-label={
+          row.getIsExpanded()
+            ? "Thu gọn chi tiết theo kho"
+            : "Xem chi tiết theo kho"
+        }
+        aria-expanded={row.getIsExpanded()}
+        onClick={row.getToggleExpandedHandler()}
+      >
+        <HugeiconsIcon
+          icon={row.getIsExpanded() ? ChevronDownIcon : ChevronRightIcon}
+          strokeWidth={2}
+          className="size-4"
+        />
+      </Button>
+    ),
+  },
   {
     id: "code",
     accessorKey: "material.code",
@@ -27,14 +57,51 @@ export const columns: ColumnDef<StockBalance>[] = [
     minSize: 180,
   },
   {
-    id: "warehouse",
-    accessorKey: "warehouse.name",
-    header: "Kho",
-    cell: ({ getValue }) => (
-      <span className="text-muted-foreground">{getValue<string>()}</span>
-    ),
-    size: 180,
-    minSize: 120,
+    id: "warehouses",
+    accessorFn: (row) =>
+      row.warehouseBalances.map((w) => w.warehouse.name).join(", "),
+    header: "Các kho có vật liệu này",
+    cell: ({ row }) => {
+      const warehouses = row.original.warehouseBalances.map((b) => b.warehouse);
+      if (warehouses.length === 0)
+        return <span className="text-muted-foreground">—</span>;
+      return (
+        <div className="flex flex-wrap items-center gap-1">
+          {warehouses.map((warehouse) => (
+            <Badge
+              key={warehouse.id}
+              variant="outline"
+              title={warehouse.name}
+              className="max-w-44 truncate text-xs font-normal text-muted-foreground"
+            >
+              {warehouse.name}
+            </Badge>
+          ))}
+        </div>
+      );
+    },
+    size: 220,
+    minSize: 160,
+  },
+  {
+    id: "totalQuantity",
+    accessorFn: (row) => Number(row.totalQuantity),
+    header: "Tồn kho",
+    cell: ({ row }) => {
+      const quantity = Number(row.original.totalQuantity);
+      return (
+        <span
+          className={cn(
+            "block text-right tabular-nums font-medium",
+            quantity <= 0 && "text-destructive",
+          )}
+        >
+          {formatDecimal(row.original.totalQuantity)}
+        </span>
+      );
+    },
+    size: 100,
+    minSize: 80,
   },
   {
     id: "unit",
@@ -47,26 +114,6 @@ export const columns: ColumnDef<StockBalance>[] = [
     minSize: 60,
   },
   {
-    id: "quantity",
-    accessorFn: (row) => Number(row.quantity),
-    header: "Tồn kho",
-    cell: ({ row }) => {
-      const quantity = Number(row.original.quantity);
-      return (
-        <span
-          className={cn(
-            "block text-right tabular-nums font-medium",
-            quantity <= 0 && "text-destructive",
-          )}
-        >
-          {formatDecimal(row.original.quantity)}
-        </span>
-      );
-    },
-    size: 100,
-    minSize: 80,
-  },
-  {
     id: "lastPurchasePrice",
     accessorFn: (row) =>
       row.lastPurchasePrice === null
@@ -75,22 +122,22 @@ export const columns: ColumnDef<StockBalance>[] = [
     header: "Giá nhập gần nhất",
     cell: ({ row }) => (
       <span className="block text-right tabular-nums">
-        {formatDecimal(row.original.lastPurchasePrice, 2)}
+        {formatMoney(row.original.lastPurchasePrice, 2)}
       </span>
     ),
     size: 150,
     minSize: 110,
   },
   {
-    id: "stockValue",
+    id: "totalStockValue",
     accessorFn: (row) =>
-      row.stockValue === null
+      row.totalStockValue === null
         ? Number.NEGATIVE_INFINITY
-        : Number(row.stockValue),
+        : Number(row.totalStockValue),
     header: "Giá trị tồn",
     cell: ({ row }) => (
       <span className="block text-right tabular-nums font-medium">
-        {formatDecimal(row.original.stockValue, 2)}
+        {formatMoney(row.original.totalStockValue, 2)}
       </span>
     ),
     size: 160,

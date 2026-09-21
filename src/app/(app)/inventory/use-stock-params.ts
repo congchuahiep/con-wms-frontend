@@ -10,7 +10,6 @@ interface StockParamsState {
   /** Giá trị search tức thời (chưa debounce) — dùng làm value cho ô input. */
   search: string;
   setSearch: (search: string) => void;
-  setWarehouse: (warehouse: number | null) => void;
   setCategory: (category: number | null) => void;
   setStockStatus: (status: "all" | "inStock") => void;
 }
@@ -27,7 +26,6 @@ interface StockParamsState {
 export function useStockParams(): StockParamsState {
   const [search, setSearchState] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [warehouse, setWarehouseState] = useState<number | null>(null);
   const [category, setCategoryState] = useState<number | null>(null);
   const [stockStatus, setStockStatusState] = useState<"all" | "inStock">("all");
 
@@ -43,10 +41,6 @@ export function useStockParams(): StockParamsState {
     setSearchState(next);
   }, []);
 
-  const setWarehouse = useCallback((next: number | null) => {
-    setWarehouseState(next);
-  }, []);
-
   const setCategory = useCallback((next: number | null) => {
     setCategoryState(next);
   }, []);
@@ -58,18 +52,16 @@ export function useStockParams(): StockParamsState {
   const params = useMemo<GetStockParams>(
     () => ({
       search: debouncedSearch || undefined,
-      warehouse: warehouse ?? undefined,
       category: category ?? undefined,
       hasStock: stockStatus === "inStock" ? true : undefined,
     }),
-    [debouncedSearch, warehouse, category, stockStatus],
+    [debouncedSearch, category, stockStatus],
   );
 
   return {
     params,
     search,
     setSearch,
-    setWarehouse,
     setCategory,
     setStockStatus,
   };
