@@ -3,11 +3,13 @@
 import { Add01Icon, ConstructionIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
+import { ExportButton } from "@/components/ui/export-button";
 import { cn } from "@/lib/utils";
 
 interface SitesHeaderProps {
   totalItems: number;
   onAdd: () => void;
+  onExport: () => void;
   /** Chỉ admin mới được tạo/sửa công trường (backend IsAdmin). */
   canCreate?: boolean;
 }
@@ -15,6 +17,7 @@ interface SitesHeaderProps {
 export function SitesHeader({
   totalItems,
   onAdd,
+  onExport,
   canCreate = true,
 }: SitesHeaderProps) {
   return (
@@ -42,16 +45,19 @@ export function SitesHeader({
         </p>
       </div>
 
-      {canCreate && (
-        <Button size="sm" onClick={onAdd}>
-          <HugeiconsIcon
-            icon={Add01Icon}
-            strokeWidth={2}
-            data-icon="inline-start"
-          />
-          Thêm công trường
-        </Button>
-      )}
+      <div className="flex items-center gap-2">
+        <ExportButton onClick={onExport} />
+        {canCreate && (
+          <Button size="sm" onClick={onAdd}>
+            <HugeiconsIcon
+              icon={Add01Icon}
+              strokeWidth={2}
+              data-icon="inline-start"
+            />
+            Thêm công trường
+          </Button>
+        )}
+      </div>
     </header>
   );
 }

@@ -8,6 +8,11 @@ import {
   useDeleteMaterial,
   useGetMaterials,
 } from "@/features/material";
+import {
+  type ExportColumn,
+  excelFileName,
+  exportRowsToXlsx,
+} from "@/utils/export";
 import { createColumns } from "./columns";
 import { CreateMaterialDialog } from "./create-dialog";
 import { EditMaterialDialog } from "./edit-dialog";
@@ -16,6 +21,18 @@ import { MaterialsFooter } from "./footer";
 import { MaterialsHeader } from "./header";
 import { MaterialsTableSection } from "./table-section";
 import { useMaterialParams } from "./use-material-params";
+
+const EXPORT_COLUMNS: ExportColumn<Material>[] = [
+  { header: "Mã", accessor: (row) => row.code },
+  { header: "Tên vật tư", accessor: (row) => row.name },
+  { header: "Danh mục", accessor: (row) => row.category.name },
+  { header: "ĐVT", accessor: (row) => row.unit.code },
+  { header: "Mô tả", accessor: (row) => row.description || "" },
+  {
+    header: "Trạng thái",
+    accessor: (row) => (row.isActive ? "Đang sử dụng" : "Ngừng"),
+  },
+];
 
 export default function MaterialsPage() {
   const { params, search, setSearch, setCategory, setPage } =
@@ -50,6 +67,14 @@ export default function MaterialsPage() {
       <MaterialsHeader
         totalItems={meta?.total ?? 0}
         onAdd={() => setDialogOpen(true)}
+        onExport={() =>
+          exportRowsToXlsx({
+            fileName: excelFileName("vat-tu", meta?.page ?? 1),
+            sheetName: "Vật tư",
+            columns: EXPORT_COLUMNS,
+            rows: items,
+          })
+        }
       />
       <MaterialsFilterBar
         categoryFilter={params.category ?? null}

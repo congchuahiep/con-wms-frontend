@@ -3,17 +3,20 @@
 import { Add01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
+import { ExportButton } from "@/components/ui/export-button";
 import { cn } from "@/lib/utils";
 import { NoteStatusTabs } from "../_components/note-status-tabs";
 
 interface OutboundNotesHeaderProps {
   total: number;
   onAdd: () => void;
+  onExport: () => void;
 }
 
 export function OutboundNotesHeader({
   total,
   onAdd,
+  onExport,
 }: OutboundNotesHeaderProps) {
   return (
     <header
@@ -26,14 +29,17 @@ export function OutboundNotesHeader({
         <p className="text-sm text-muted-foreground">{total} phiếu</p>
       </div>
 
-      <Button onClick={onAdd}>
-        <HugeiconsIcon
-          icon={Add01Icon}
-          strokeWidth={2}
-          data-icon="inline-start"
-        />
-        Tạo phiếu xuất
-      </Button>
+      <div className="flex items-center gap-2">
+        <ExportButton onClick={onExport} />
+        <Button onClick={onAdd}>
+          <HugeiconsIcon
+            icon={Add01Icon}
+            strokeWidth={2}
+            data-icon="inline-start"
+          />
+          Tạo phiếu xuất
+        </Button>
+      </div>
     </header>
   );
 }

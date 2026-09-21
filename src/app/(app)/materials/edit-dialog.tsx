@@ -1,9 +1,9 @@
 "use client";
 
 import {
+  Form,
   Field as FormField,
   type FormStore,
-  Form,
   getInput,
   reset,
 } from "@formisch/react";
@@ -24,9 +24,9 @@ import { Spinner } from "@/components/ui/spinner";
 import { toast } from "@/components/ui/toast";
 import { ValidationError } from "@/errors";
 import {
-  type MaterialSchema,
   type Material,
   type MaterialDetail,
+  type MaterialSchema,
   useGetMaterial,
   useUpdateMaterial,
 } from "@/features/material";

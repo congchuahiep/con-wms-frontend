@@ -1,12 +1,9 @@
 "use client";
 
-import {
-  Add01Icon,
-  Download01Icon,
-  Package01Icon,
-} from "@hugeicons/core-free-icons";
+import { Add01Icon, Package01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
+import { ExportButton } from "@/components/ui/export-button";
 import { cn } from "@/lib/utils";
 import { formatDecimal } from "@/utils/format";
 
@@ -14,12 +11,14 @@ interface InventoryHeaderProps {
   totalRows: number;
   totalValue: number;
   onCreateNote: () => void;
+  onExport: () => void;
 }
 
 export function InventoryHeader({
   totalRows,
   totalValue,
   onCreateNote,
+  onExport,
 }: InventoryHeaderProps) {
   return (
     <header
@@ -46,14 +45,7 @@ export function InventoryHeader({
         </p>
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" disabled>
-          <HugeiconsIcon
-            icon={Download01Icon}
-            strokeWidth={2}
-            data-icon="inline-start"
-          />
-          Xuất CSV
-        </Button>
+        <ExportButton onClick={onExport} />
         <Button size="sm" onClick={onCreateNote}>
           <HugeiconsIcon
             icon={Add01Icon}

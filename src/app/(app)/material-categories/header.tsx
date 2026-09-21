@@ -1,22 +1,21 @@
 "use client";
 
-import {
-  Add01Icon,
-  Download01Icon,
-  TagsIcon,
-} from "@hugeicons/core-free-icons";
+import { Add01Icon, TagsIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
+import { ExportButton } from "@/components/ui/export-button";
 import { cn } from "@/lib/utils";
 
 interface MaterialCategoriesHeaderProps {
   totalCategories: number;
   onAdd: () => void;
+  onExport: () => void;
 }
 
 export function MaterialCategoriesHeader({
   totalCategories,
   onAdd,
+  onExport,
 }: MaterialCategoriesHeaderProps) {
   return (
     <header
@@ -40,14 +39,7 @@ export function MaterialCategoriesHeader({
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" disabled>
-          <HugeiconsIcon
-            icon={Download01Icon}
-            strokeWidth={2}
-            data-icon="inline-start"
-          />
-          Xuất CSV
-        </Button>
+        <ExportButton onClick={onExport} />
         <Button size="sm" onClick={onAdd}>
           <HugeiconsIcon
             icon={Add01Icon}

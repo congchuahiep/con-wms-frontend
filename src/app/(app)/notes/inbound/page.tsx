@@ -11,6 +11,11 @@ import {
   useFinalizeInboundNote,
   useGetInboundNotes,
 } from "@/features/inbound-note";
+import {
+  type ExportColumn,
+  excelFileName,
+  exportRowsToXlsx,
+} from "@/utils/export";
 import { createColumns } from "./columns";
 import { CreateInboundNoteDialog } from "./create-dialog";
 import { InboundNoteDetailExpanded } from "./detail-expanded";
@@ -22,6 +27,18 @@ import { InboundNotePrintDialog } from "./print-dialog";
 import { InboundNotesTableSection } from "./table-section";
 import { useInboundNoteParams } from "./use-inbound-note-params";
 import { VoidInboundNoteDialog } from "./void-dialog";
+
+const EXPORT_COLUMNS: ExportColumn<InboundNote>[] = [
+  { header: "Số phiếu", accessor: (row) => row.number },
+  { header: "Ngày", accessor: (row) => row.date },
+  { header: "Loại", accessor: (row) => row.noteTypeLabel },
+  { header: "Kho", accessor: (row) => row.warehouse.name },
+  { header: "NCC", accessor: (row) => row.supplier?.name ?? "" },
+  { header: "Số loại hàng", accessor: (row) => row.totalQuantity },
+  { header: "Thành tiền", accessor: (row) => Number(row.totalAmount) },
+  { header: "Người lập", accessor: (row) => row.createdBy.email },
+  { header: "Trạng thái", accessor: (row) => row.statusLabel },
+];
 
 export default function InboundNotesPage() {
   const {
@@ -78,6 +95,14 @@ export default function InboundNotesPage() {
       <InboundNotesHeader
         total={meta?.total ?? 0}
         onAdd={() => setCreateOpen(true)}
+        onExport={() =>
+          exportRowsToXlsx({
+            fileName: excelFileName("phieu-nhap", meta?.page ?? 1),
+            sheetName: "Phiếu nhập",
+            columns: EXPORT_COLUMNS,
+            rows: items,
+          })
+        }
       />
       <InboundNotesFilterBar
         noteTypeFilter={params.noteType}

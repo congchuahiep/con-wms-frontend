@@ -11,6 +11,11 @@ import {
   useFinalizeOutboundNote,
   useGetOutboundNotes,
 } from "@/features/outbound-note";
+import {
+  type ExportColumn,
+  excelFileName,
+  exportRowsToXlsx,
+} from "@/utils/export";
 import { createColumns } from "./columns";
 import { CreateOutboundNoteDialog } from "./create-dialog";
 import { OutboundNoteDetailExpanded } from "./detail-expanded";
@@ -22,6 +27,20 @@ import { OutboundNotePrintDialog } from "./print-dialog";
 import { OutboundNotesTableSection } from "./table-section";
 import { useOutboundNoteParams } from "./use-outbound-note-params";
 import { VoidOutboundNoteDialog } from "./void-dialog";
+
+const EXPORT_COLUMNS: ExportColumn<OutboundNote>[] = [
+  { header: "Số phiếu", accessor: (row) => row.number },
+  { header: "Ngày", accessor: (row) => row.date },
+  { header: "Loại", accessor: (row) => row.noteTypeLabel },
+  { header: "Kho xuất", accessor: (row) => row.warehouse.name },
+  {
+    header: "Kho nhận / CT",
+    accessor: (row) => row.toWarehouse?.name ?? row.site?.name ?? "",
+  },
+  { header: "Số lượng", accessor: (row) => row.totalQuantity },
+  { header: "Người lập", accessor: (row) => row.createdBy.email },
+  { header: "Trạng thái", accessor: (row) => row.statusLabel },
+];
 
 export default function OutboundNotesPage() {
   const {
@@ -79,6 +98,14 @@ export default function OutboundNotesPage() {
       <OutboundNotesHeader
         total={meta?.total ?? 0}
         onAdd={() => setCreateOpen(true)}
+        onExport={() =>
+          exportRowsToXlsx({
+            fileName: excelFileName("phieu-xuat", meta?.page ?? 1),
+            sheetName: "Phiếu xuất",
+            columns: EXPORT_COLUMNS,
+            rows: items,
+          })
+        }
       />
       <OutboundNotesFilterBar
         noteTypeFilter={params.noteType}

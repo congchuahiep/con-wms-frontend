@@ -15,8 +15,28 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetWarehouses, type Warehouse } from "@/features/warehouse";
 import { cn } from "@/lib/utils";
+import {
+  type ExportColumn,
+  excelFileName,
+  exportRowsToXlsx,
+} from "@/utils/export";
 import WarehouseHeader from "./header";
 import { WarehouseItem } from "./item";
+
+const EXPORT_COLUMNS: ExportColumn<Warehouse>[] = [
+  { header: "Mã", accessor: (row) => row.code },
+  { header: "Tên kho", accessor: (row) => row.name },
+  {
+    header: "Loại",
+    accessor: (row) =>
+      row.site ? `Kho công trường — ${row.site.name}` : "Kho thường",
+  },
+  { header: "Địa chỉ", accessor: (row) => row.address || "" },
+  {
+    header: "Trạng thái",
+    accessor: (row) => (row.isActive ? "Hoạt động" : "Ngừng sử dụng"),
+  },
+];
 
 export default function WarehousesPage() {
   // Hiển thị đủ kho: kho trung tâm + kho công trường (phân biệt bằng badge)
@@ -37,7 +57,16 @@ export default function WarehousesPage() {
 
   return (
     <div className="flex h-full min-h-0 max-h-full flex-col overflow-auto">
-      <WarehouseHeader />
+      <WarehouseHeader
+        onExport={() =>
+          exportRowsToXlsx({
+            fileName: excelFileName("kho"),
+            sheetName: "Kho",
+            columns: EXPORT_COLUMNS,
+            rows: warehouses ?? [],
+          })
+        }
+      />
 
       {content()}
     </div>
@@ -75,10 +104,7 @@ function WarehouseList({ warehouses }: { warehouses: Warehouse[] }) {
       </WarehouseSection>
 
       {site.length > 0 && (
-        <WarehouseSection
-          title="Kho công trường"
-          count={site.length}
-        >
+        <WarehouseSection title="Kho công trường" count={site.length}>
           {site.map((warehouse) => (
             <WarehouseItem key={warehouse.id} warehouse={warehouse} />
           ))}

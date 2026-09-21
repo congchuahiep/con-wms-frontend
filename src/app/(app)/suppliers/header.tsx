@@ -3,14 +3,20 @@
 import { Add01Icon, TruckIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
+import { ExportButton } from "@/components/ui/export-button";
 import { cn } from "@/lib/utils";
 
 interface SuppliersHeaderProps {
   totalItems: number;
   onAdd: () => void;
+  onExport: () => void;
 }
 
-export function SuppliersHeader({ totalItems, onAdd }: SuppliersHeaderProps) {
+export function SuppliersHeader({
+  totalItems,
+  onAdd,
+  onExport,
+}: SuppliersHeaderProps) {
   return (
     <header
       className={cn(
@@ -32,14 +38,17 @@ export function SuppliersHeader({ totalItems, onAdd }: SuppliersHeaderProps) {
         </p>
       </div>
 
-      <Button size="sm" onClick={onAdd}>
-        <HugeiconsIcon
-          icon={Add01Icon}
-          strokeWidth={2}
-          data-icon="inline-start"
-        />
-        Thêm nhà cung cấp
-      </Button>
+      <div className="flex items-center gap-2">
+        <ExportButton onClick={onExport} />
+        <Button size="sm" onClick={onAdd}>
+          <HugeiconsIcon
+            icon={Add01Icon}
+            strokeWidth={2}
+            data-icon="inline-start"
+          />
+          Thêm nhà cung cấp
+        </Button>
+      </div>
     </header>
   );
 }

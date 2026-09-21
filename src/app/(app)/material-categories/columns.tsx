@@ -22,7 +22,10 @@ interface ColumnsOptions {
   onDelete: (category: MaterialCategory) => void;
 }
 
-export function createColumns({ onEdit, onDelete }: ColumnsOptions): ColumnDef<MaterialCategory>[] {
+export function createColumns({
+  onEdit,
+  onDelete,
+}: ColumnsOptions): ColumnDef<MaterialCategory>[] {
   return [
     {
       id: "name",

@@ -1,15 +1,19 @@
 "use client";
 
-import { Book01Icon, Download01Icon } from "@hugeicons/core-free-icons";
+import { Book01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Button } from "@/components/ui/button";
+import { ExportButton } from "@/components/ui/export-button";
 import { cn } from "@/lib/utils";
 
 interface StockMovementsHeaderProps {
   total: number;
+  onExport: () => void;
 }
 
-export function StockMovementsHeader({ total }: StockMovementsHeaderProps) {
+export function StockMovementsHeader({
+  total,
+  onExport,
+}: StockMovementsHeaderProps) {
   return (
     <header
       className={cn(
@@ -29,14 +33,7 @@ export function StockMovementsHeader({ total }: StockMovementsHeaderProps) {
         <p className="text-sm text-muted-foreground">{total} dòng ghi sổ</p>
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" disabled>
-          <HugeiconsIcon
-            icon={Download01Icon}
-            strokeWidth={2}
-            data-icon="inline-start"
-          />
-          Xuất CSV
-        </Button>
+        <ExportButton onClick={onExport} />
       </div>
     </header>
   );

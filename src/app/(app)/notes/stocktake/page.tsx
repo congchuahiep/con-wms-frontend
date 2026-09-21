@@ -11,6 +11,11 @@ import {
   useFinalizeStocktakeNote,
   useGetStocktakeNotes,
 } from "@/features/stocktake";
+import {
+  type ExportColumn,
+  excelFileName,
+  exportRowsToXlsx,
+} from "@/utils/export";
 import { createColumns } from "./columns";
 import { CreateStocktakeNoteDialog } from "./create-dialog";
 import { StocktakeNoteDetailExpanded } from "./detail-expanded";
@@ -22,6 +27,15 @@ import { StocktakeNotePrintDialog } from "./print-dialog";
 import { StocktakeNotesTableSection } from "./table-section";
 import { useStocktakeNoteParams } from "./use-stocktake-note-params";
 import { VoidStocktakeNoteDialog } from "./void-dialog";
+
+const EXPORT_COLUMNS: ExportColumn<StocktakeNote>[] = [
+  { header: "Số phiếu", accessor: (row) => row.number },
+  { header: "Ngày", accessor: (row) => row.date },
+  { header: "Kho", accessor: (row) => row.warehouse.name },
+  { header: "Số dòng", accessor: (row) => row.totalQuantity },
+  { header: "Người lập", accessor: (row) => row.createdBy.email },
+  { header: "Trạng thái", accessor: (row) => row.statusLabel },
+];
 
 export default function StocktakeNotesPage() {
   const {
@@ -76,6 +90,14 @@ export default function StocktakeNotesPage() {
       <StocktakeNotesHeader
         total={meta?.total ?? 0}
         onAdd={() => setCreateOpen(true)}
+        onExport={() =>
+          exportRowsToXlsx({
+            fileName: excelFileName("phieu-kiem-ke", meta?.page ?? 1),
+            sheetName: "Phiếu kiểm kê",
+            columns: EXPORT_COLUMNS,
+            rows: items,
+          })
+        }
       />
       <StocktakeNotesFilterBar
         warehouseFilter={params.warehouse}

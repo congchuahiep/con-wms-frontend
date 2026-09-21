@@ -13,6 +13,11 @@ import {
   useDeleteCategory,
   useGetCategories,
 } from "@/features/material-category";
+import {
+  type ExportColumn,
+  excelFileName,
+  exportRowsToXlsx,
+} from "@/utils/export";
 import { createColumns } from "./columns";
 import { CreateCategoryDialog } from "./create-dialog";
 import { EditCategoryDialog } from "./edit-dialog";
@@ -48,6 +53,21 @@ function filterTree(
 function countAllNodes(nodes: MaterialCategory[]): number {
   return nodes.reduce((sum, node) => sum + 1 + countAllNodes(node.children), 0);
 }
+
+/** Làm phẳng cây danh mục (cha → con) để xuất Excel — khớp các dòng đang hiển thị. */
+function flattenCategories(nodes: MaterialCategory[]): MaterialCategory[] {
+  return nodes.flatMap((node) => [node, ...flattenCategories(node.children)]);
+}
+
+const EXPORT_COLUMNS: ExportColumn<MaterialCategory>[] = [
+  { header: "Mã", accessor: (row) => row.code },
+  { header: "Tên danh mục", accessor: (row) => row.name },
+  { header: "Mô tả", accessor: (row) => row.description || "" },
+  {
+    header: "Trạng thái",
+    accessor: (row) => (row.isActive ? "Hoạt động" : "Ngừng"),
+  },
+];
 
 export default function MaterialCategoryPage() {
   const { data: categories = [] } = useGetCategories();
@@ -95,6 +115,14 @@ export default function MaterialCategoryPage() {
       <MaterialCategoriesHeader
         totalCategories={totalCount}
         onAdd={() => setDialogOpen(true)}
+        onExport={() =>
+          exportRowsToXlsx({
+            fileName: excelFileName("danh-muc-vat-tu"),
+            sheetName: "Danh mục vật tư",
+            columns: EXPORT_COLUMNS,
+            rows: flattenCategories(filtered),
+          })
+        }
       />
       <MaterialCategoriesFilterBar search={search} onSearchChange={setSearch} />
       <MaterialCategoriesTableSection table={table} />

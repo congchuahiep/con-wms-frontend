@@ -1,6 +1,6 @@
 "use client";
 
-import { Field as FormField, Form } from "@formisch/react";
+import { Form, Field as FormField } from "@formisch/react";
 import { InputField } from "@/components/form/InputField";
 import { TextareaField } from "@/components/form/TextareaField";
 import { Button } from "@/components/ui/button";

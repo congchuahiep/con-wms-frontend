@@ -1,13 +1,17 @@
 import Building02Icon from "@hugeicons/core-free-icons/Building02Icon";
-import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
 import Upload01Icon from "@hugeicons/core-free-icons/Upload01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
+import { ExportButton } from "@/components/ui/export-button";
 import { useGetUserProfile } from "@/features/auth";
 import { cn } from "@/lib/utils";
 import { WarehouseCreateDialog } from "./create-dialog";
 
-export default function WarehouseHeader() {
+interface WarehouseHeaderProps {
+  onExport: () => void;
+}
+
+export default function WarehouseHeader({ onExport }: WarehouseHeaderProps) {
   const userProfile = useGetUserProfile();
 
   return (
@@ -34,14 +38,7 @@ export default function WarehouseHeader() {
         <h1 className="font-semibold tracking-tight">Quản lý kho</h1>
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" disabled>
-          <HugeiconsIcon
-            icon={Download01Icon}
-            strokeWidth={2}
-            data-icon="inline-start"
-          />
-          Xuất CSV
-        </Button>
+        <ExportButton onClick={onExport} />
         <Button variant="outline" size="sm" disabled>
           <HugeiconsIcon
             icon={Upload01Icon}

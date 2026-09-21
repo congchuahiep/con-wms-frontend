@@ -3,11 +3,12 @@
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
+import { type Unit, useDeleteUnit, useGetUnits } from "@/features/unit";
 import {
-  type Unit,
-  useDeleteUnit,
-  useGetUnits,
-} from "@/features/unit";
+  type ExportColumn,
+  excelFileName,
+  exportRowsToXlsx,
+} from "@/utils/export";
 import { createColumns } from "./columns";
 import { CreateUnitDialog } from "./create-dialog";
 import { EditUnitDialog } from "./edit-dialog";
@@ -15,6 +16,15 @@ import { UnitsFilterBar } from "./filter-bar";
 import { UnitsFooter } from "./footer";
 import { UnitsHeader } from "./header";
 import { UnitsTableSection } from "./table-section";
+
+const EXPORT_COLUMNS: ExportColumn<Unit>[] = [
+  { header: "Mã", accessor: (row) => row.code },
+  { header: "Tên", accessor: (row) => row.name },
+  {
+    header: "Trạng thái",
+    accessor: (row) => (row.isActive ? "Hoạt động" : "Ngừng"),
+  },
+];
 
 function filterUnits(units: Unit[], search: string): Unit[] {
   const lower = search.toLowerCase();
@@ -39,8 +49,7 @@ export default function UnitsPage() {
 
   const totalCount = units.length;
 
-  const { mutateAsync: deleteUnit, isPending: isDeleting } =
-    useDeleteUnit();
+  const { mutateAsync: deleteUnit, isPending: isDeleting } = useDeleteUnit();
 
   const tableColumns = useMemo(
     () =>
@@ -59,17 +68,25 @@ export default function UnitsPage() {
 
   return (
     <div className="flex h-full min-h-0 max-h-full flex-col">
-      <UnitsHeader totalUnits={totalCount} onAdd={() => setDialogOpen(true)} />
+      <UnitsHeader
+        totalUnits={totalCount}
+        onAdd={() => setDialogOpen(true)}
+        onExport={() =>
+          exportRowsToXlsx({
+            fileName: excelFileName("don-vi-tinh"),
+            sheetName: "Đơn vị tính",
+            columns: EXPORT_COLUMNS,
+            rows: filtered,
+          })
+        }
+      />
       <UnitsFilterBar search={search} onSearchChange={setSearch} />
       <UnitsTableSection table={table} />
       <UnitsFooter table={table} totalCount={totalCount} />
 
       <CreateUnitDialog open={dialogOpen} onOpenChange={setDialogOpen} />
 
-      <EditUnitDialog
-        unit={editingUnit}
-        onClose={() => setEditingUnit(null)}
-      />
+      <EditUnitDialog unit={editingUnit} onClose={() => setEditingUnit(null)} />
 
       <DeleteConfirmDialog
         open={deleteTarget !== null}
@@ -80,9 +97,8 @@ export default function UnitsPage() {
         description={
           deleteTarget ? (
             <>
-              Bạn có chắc muốn xoá đơn vị{" "}
-              <strong>"{deleteTarget.name}"</strong>? Hành động này không thể
-              hoàn tác.
+              Bạn có chắc muốn xoá đơn vị <strong>"{deleteTarget.name}"</strong>
+              ? Hành động này không thể hoàn tác.
             </>
           ) : (
             ""

@@ -8,6 +8,11 @@ import {
   useDeleteSupplier,
   useGetSuppliers,
 } from "@/features/supplier";
+import {
+  type ExportColumn,
+  excelFileName,
+  exportRowsToXlsx,
+} from "@/utils/export";
 import { createColumns } from "./columns";
 import { CreateSupplierDialog } from "./create-dialog";
 import { EditSupplierDialog } from "./edit-dialog";
@@ -16,6 +21,21 @@ import { SuppliersFooter } from "./footer";
 import { SuppliersHeader } from "./header";
 import { SuppliersTableSection } from "./table-section";
 import { useSupplierParams } from "./use-supplier-params";
+
+const EXPORT_COLUMNS: ExportColumn<Supplier>[] = [
+  { header: "Mã", accessor: (row) => row.code },
+  { header: "Tên", accessor: (row) => row.name },
+  { header: "MST", accessor: (row) => row.taxCode },
+  { header: "Người liên hệ", accessor: (row) => row.contactPerson || "" },
+  { header: "SĐT", accessor: (row) => row.phone },
+  { header: "Email", accessor: (row) => row.email },
+  { header: "Địa chỉ", accessor: (row) => row.address || "" },
+  { header: "Ghi chú", accessor: (row) => row.note || "" },
+  {
+    header: "Trạng thái",
+    accessor: (row) => (row.isActive ? "Hoạt động" : "Ngừng"),
+  },
+];
 
 export default function SuppliersPage() {
   const { params, setSearch } = useSupplierParams();
@@ -51,6 +71,14 @@ export default function SuppliersPage() {
       <SuppliersHeader
         totalItems={items.length}
         onAdd={() => setDialogOpen(true)}
+        onExport={() =>
+          exportRowsToXlsx({
+            fileName: excelFileName("nha-cung-cap"),
+            sheetName: "Nhà cung cấp",
+            columns: EXPORT_COLUMNS,
+            rows: items,
+          })
+        }
       />
       <SuppliersFilterBar
         search={params.search ?? ""}

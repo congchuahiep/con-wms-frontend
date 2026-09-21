@@ -1,20 +1,22 @@
 "use client";
 
-import {
-  Add01Icon,
-  Download01Icon,
-  Package01Icon,
-} from "@hugeicons/core-free-icons";
+import { Add01Icon, Package01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
+import { ExportButton } from "@/components/ui/export-button";
 import { cn } from "@/lib/utils";
 
 interface MaterialsHeaderProps {
   totalItems: number;
   onAdd: () => void;
+  onExport: () => void;
 }
 
-export function MaterialsHeader({ totalItems, onAdd }: MaterialsHeaderProps) {
+export function MaterialsHeader({
+  totalItems,
+  onAdd,
+  onExport,
+}: MaterialsHeaderProps) {
   return (
     <header
       className={cn(
@@ -35,20 +37,11 @@ export function MaterialsHeader({ totalItems, onAdd }: MaterialsHeaderProps) {
           />
         </div>
         <h1 className="font-semibold tracking-tight">Vật tư</h1>
-        <p className="text-sm text-muted-foreground">
-          {totalItems} mặt hàng
-        </p>
+        <p className="text-sm text-muted-foreground">{totalItems} mặt hàng</p>
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" disabled>
-          <HugeiconsIcon
-            icon={Download01Icon}
-            strokeWidth={2}
-            data-icon="inline-start"
-          />
-          Xuất CSV
-        </Button>
+        <ExportButton onClick={onExport} />
         <Button size="sm" onClick={onAdd}>
           <HugeiconsIcon
             icon={Add01Icon}

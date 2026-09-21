@@ -1,13 +1,42 @@
 "use client";
 
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { useGetStockMovements } from "@/features/stock";
+import { type StockMovement, useGetStockMovements } from "@/features/stock";
+import {
+  type ExportColumn,
+  excelFileName,
+  exportRowsToXlsx,
+} from "@/utils/export";
 import { columns } from "./columns";
 import { StockMovementsFilterBar } from "./filter-bar";
 import { StockMovementsFooter } from "./footer";
 import { StockMovementsHeader } from "./header";
 import { StockMovementsTableSection } from "./table-section";
 import { useStockMovementParams } from "./use-stock-movement-params";
+
+const EXPORT_COLUMNS: ExportColumn<StockMovement>[] = [
+  { header: "Ngày", accessor: (row) => row.date },
+  { header: "Loại", accessor: (row) => row.movementTypeLabel },
+  { header: "Mã vật tư", accessor: (row) => row.material.code },
+  { header: "Tên vật tư", accessor: (row) => row.material.name },
+  { header: "Kho", accessor: (row) => row.warehouse.name },
+  {
+    header: "Đơn giá",
+    accessor: (row) => (row.unitPrice === null ? "" : Number(row.unitPrice)),
+  },
+  { header: "Số lượng", accessor: (row) => Number(row.quantity) },
+  {
+    header: "Thành tiền",
+    accessor: (row) =>
+      row.unitPrice === null
+        ? ""
+        : Number(row.quantity) * Number(row.unitPrice),
+  },
+  { header: "Phiếu", accessor: (row) => row.sourceNote?.number ?? "" },
+  { header: "Lý do", accessor: (row) => row.reason || "" },
+  { header: "Người tạo", accessor: (row) => row.createdBy.email },
+  { header: "Thời điểm tạo", accessor: (row) => row.createdAt },
+];
 
 export default function StockMovementsPage() {
   const {
@@ -34,7 +63,17 @@ export default function StockMovementsPage() {
 
   return (
     <div className="flex h-full min-h-0 max-h-full flex-col">
-      <StockMovementsHeader total={meta?.total ?? 0} />
+      <StockMovementsHeader
+        total={meta?.total ?? 0}
+        onExport={() =>
+          exportRowsToXlsx({
+            fileName: excelFileName("so-kho", meta?.page ?? 1),
+            sheetName: "Sổ kho",
+            columns: EXPORT_COLUMNS,
+            rows: items,
+          })
+        }
+      />
       <StockMovementsFilterBar
         warehouseFilter={params.warehouse ?? null}
         onWarehouseChange={setWarehouse}
