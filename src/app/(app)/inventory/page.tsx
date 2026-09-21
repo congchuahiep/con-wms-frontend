@@ -5,7 +5,8 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { CreateInboundNoteDialog } from "@/app/(app)/notes/inbound/create-dialog";
 import { aggregateStockBalances, useGetStockBalances } from "@/features/stock";
 import { columns } from "./columns";
 import { InventoryDetailExpanded } from "./detail-expanded";
@@ -18,6 +19,8 @@ import { useStockParams } from "./use-stock-params";
 export default function InventoryPage() {
   const { params, search, setSearch, setCategory, setStockStatus } =
     useStockParams();
+
+  const [createOpen, setCreateOpen] = useState(false);
 
   const {
     data: balances = [],
@@ -49,7 +52,11 @@ export default function InventoryPage() {
 
   return (
     <div className="flex h-full min-h-0 max-h-full flex-col">
-      <InventoryHeader totalRows={items.length} totalValue={totalValue} />
+      <InventoryHeader
+        totalRows={items.length}
+        totalValue={totalValue}
+        onCreateNote={() => setCreateOpen(true)}
+      />
       <InventoryFilterBar
         categoryFilter={params.category ?? null}
         onCategoryChange={setCategory}
@@ -66,6 +73,8 @@ export default function InventoryPage() {
         )}
       />
       <InventoryFooter totalRows={items.length} totalValue={totalValue} />
+
+      <CreateInboundNoteDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }

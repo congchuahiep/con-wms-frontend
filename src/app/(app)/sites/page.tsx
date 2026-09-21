@@ -7,7 +7,6 @@ import { useGetUserProfile } from "@/features/auth";
 import { type Site, useDeleteSite, useGetSites } from "@/features/site";
 import { createColumns } from "./columns";
 import { CreateSiteDialog } from "./create-dialog";
-import { SitesFilterBar } from "./filter-bar";
 import { SitesFooter } from "./footer";
 import { SitesHeader } from "./header";
 import { SitesTableSection } from "./table-section";
@@ -51,12 +50,12 @@ export default function SitesPage() {
         onAdd={() => setDialogOpen(true)}
         canCreate={isAdmin}
       />
-      <SitesFilterBar
+      {/*<SitesFilterBar
         search={params.search ?? ""}
         onSearchChange={setSearch}
         status={status}
         onStatusChange={setStatus}
-      />
+      />*/}
       <SitesTableSection table={table} />
       <SitesFooter total={items.length} />
 

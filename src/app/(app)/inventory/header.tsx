@@ -6,7 +6,6 @@ import {
   Package01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatDecimal } from "@/utils/format";
@@ -14,11 +13,13 @@ import { formatDecimal } from "@/utils/format";
 interface InventoryHeaderProps {
   totalRows: number;
   totalValue: number;
+  onCreateNote: () => void;
 }
 
 export function InventoryHeader({
   totalRows,
   totalValue,
+  onCreateNote,
 }: InventoryHeaderProps) {
   return (
     <header
@@ -53,16 +54,7 @@ export function InventoryHeader({
           />
           Xuất CSV
         </Button>
-        <Button
-          size="sm"
-          nativeButton={false}
-          render={
-            <Link
-              href="/inbound-notes"
-              className="inline-flex items-center gap-1.5"
-            />
-          }
-        >
+        <Button size="sm" onClick={onCreateNote}>
           <HugeiconsIcon
             icon={Add01Icon}
             strokeWidth={2}

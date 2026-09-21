@@ -1,8 +1,7 @@
 "use client";
 
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "@/components/ui/toast";
@@ -54,23 +53,6 @@ export default function InboundNotesPage() {
     useDeleteInboundNote();
   const { mutateAsync: finalizeNote, isPending: isFinalizing } =
     useFinalizeInboundNote(finalizingNote?.id ?? 0);
-
-  // Prefill khi mở từ trang Công trường (?warehouseId=...) — kho đã chọn sẵn
-  const searchParams = useSearchParams();
-  const createPrefill = useMemo(() => {
-    const raw = searchParams.get("warehouseId");
-    const n = raw ? Number(raw) : Number.NaN;
-    return Number.isInteger(n) && n > 0 ? { warehouseId: n } : undefined;
-  }, [searchParams]);
-
-  // Đến với prefill (từ trang Công trường) → tự mở dialog tạo phiếu 1 lần
-  const didAutoOpenRef = useRef(false);
-  useEffect(() => {
-    if (createPrefill && !didAutoOpenRef.current) {
-      didAutoOpenRef.current = true;
-      setCreateOpen(true);
-    }
-  }, [createPrefill]);
 
   const tableColumns = useMemo(
     () =>

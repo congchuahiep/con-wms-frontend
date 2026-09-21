@@ -68,10 +68,19 @@ export function InventoryFilterBar({
             <SelectTrigger>
               <HugeiconsIcon
                 icon={Tag02FreeIcons}
-                className="text-muted-foreground"
+                className="text-purple-700"
               />
               <span className="text-muted-foreground">Danh mục:</span>
-              <SelectValue placeholder="Tất cả" />
+              <SelectValue placeholder="Tất cả">
+                {(value) => {
+                  if (value === ALL_VALUE) return "Tất cả";
+                  return (
+                    categoryOptions
+                      .find((cat) => cat.id === Number(value))
+                      ?.label.trim() ?? value
+                  );
+                }}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent alignItemWithTrigger={false}>
               <SelectItem value={ALL_VALUE}>Tất cả</SelectItem>
@@ -91,12 +100,14 @@ export function InventoryFilterBar({
             }}
           >
             <SelectTrigger>
-              <HugeiconsIcon
-                icon={Package01Icon}
-                className="text-muted-foreground"
-              />
+              <HugeiconsIcon icon={Package01Icon} className="text-yellow-700" />
               <span className="text-muted-foreground">Tồn:</span>
-              <SelectValue placeholder="Tất cả" />
+              <SelectValue placeholder="Tất cả">
+                {(value) => {
+                  if (value === "all") return "Tất cả";
+                  return value === "inStock" ? "Còn tồn (≠ 0)" : value;
+                }}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent alignItemWithTrigger={false}>
               <SelectItem value="all">Tất cả</SelectItem>

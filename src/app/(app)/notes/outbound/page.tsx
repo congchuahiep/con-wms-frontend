@@ -1,8 +1,7 @@
 "use client";
 
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { toast } from "@/components/ui/toast";
@@ -55,29 +54,6 @@ export default function OutboundNotesPage() {
     useDeleteOutboundNote();
   const { mutateAsync: finalizeNote, isPending: isFinalizing } =
     useFinalizeOutboundNote(finalizingNote?.id ?? 0);
-
-  // Prefill khi mở từ trang Công trường (?siteId=&warehouseId=)
-  const searchParams = useSearchParams();
-  const createPrefill = useMemo(() => {
-    const prefill: { siteId?: number; warehouseId?: number } = {};
-    const siteRaw = searchParams.get("siteId");
-    const siteId = siteRaw ? Number(siteRaw) : Number.NaN;
-    if (Number.isInteger(siteId) && siteId > 0) prefill.siteId = siteId;
-    const whRaw = searchParams.get("warehouseId");
-    const warehouseId = whRaw ? Number(whRaw) : Number.NaN;
-    if (Number.isInteger(warehouseId) && warehouseId > 0)
-      prefill.warehouseId = warehouseId;
-    return Object.keys(prefill).length > 0 ? prefill : undefined;
-  }, [searchParams]);
-
-  // Đến với prefill (từ trang Công trường) → tự mở dialog tạo phiếu 1 lần
-  const didAutoOpenRef = useRef(false);
-  useEffect(() => {
-    if (createPrefill && !didAutoOpenRef.current) {
-      didAutoOpenRef.current = true;
-      setCreateOpen(true);
-    }
-  }, [createPrefill]);
 
   const tableColumns = useMemo(
     () =>

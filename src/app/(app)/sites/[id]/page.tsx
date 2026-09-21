@@ -13,6 +13,9 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { CreateInboundNoteDialog } from "@/app/(app)/notes/inbound/create-dialog";
+import { CreateOutboundNoteDialog } from "@/app/(app)/notes/outbound/create-dialog";
+import { CreateStocktakeNoteDialog } from "@/app/(app)/notes/stocktake/create-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +47,9 @@ export default function SiteDetailPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [requirementsOpen, setRequirementsOpen] = useState(false);
   const [settleOpen, setSettleOpen] = useState(false);
+  const [createInboundOpen, setCreateInboundOpen] = useState(false);
+  const [createOutboundOpen, setCreateOutboundOpen] = useState(false);
+  const [createStocktakeOpen, setCreateStocktakeOpen] = useState(false);
 
   if (status === "pending") return <SiteDetailSkeleton />;
 
@@ -70,13 +76,14 @@ export default function SiteDetailPage() {
         name={site.name}
         code={site.code}
         status={site.status}
-        siteId={site.id}
-        warehouseId={site.warehouse?.id ?? null}
         warehouseCode={site.warehouse?.code ?? null}
         isActive={isActive}
         onEdit={() => setEditOpen(true)}
         onEditRequirements={() => setRequirementsOpen(true)}
         onSettle={() => setSettleOpen(true)}
+        onCreateInbound={() => setCreateInboundOpen(true)}
+        onCreateOutbound={() => setCreateOutboundOpen(true)}
+        onCreateStocktake={() => setCreateStocktakeOpen(true)}
       />
 
       <div className="flex-1 overflow-auto">
@@ -104,6 +111,32 @@ export default function SiteDetailPage() {
         rows={rows}
         open={settleOpen}
         onOpenChange={setSettleOpen}
+      />
+
+      <CreateInboundNoteDialog
+        open={createInboundOpen}
+        onOpenChange={setCreateInboundOpen}
+        initialInput={
+          site.warehouse ? { warehouseId: site.warehouse.id } : undefined
+        }
+      />
+
+      <CreateOutboundNoteDialog
+        open={createOutboundOpen}
+        onOpenChange={setCreateOutboundOpen}
+        initialInput={
+          site.warehouse
+            ? { siteId: site.id, warehouseId: site.warehouse.id }
+            : undefined
+        }
+      />
+
+      <CreateStocktakeNoteDialog
+        open={createStocktakeOpen}
+        onOpenChange={setCreateStocktakeOpen}
+        initialInput={
+          site.warehouse ? { warehouseId: site.warehouse.id } : undefined
+        }
       />
     </div>
   );

@@ -5,6 +5,10 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  getCategoryColorClass,
+  type SimpleMaterialCategory,
+} from "@/features/material-category";
 import type { StockBalanceSummary } from "@/features/stock";
 import { cn } from "@/lib/utils";
 import { formatDecimal, formatMoney } from "@/utils/format";
@@ -55,6 +59,24 @@ export const columns: ColumnDef<StockBalanceSummary>[] = [
     ),
     size: 250,
     minSize: 180,
+  },
+  {
+    id: "category",
+    accessorKey: "material.category",
+    header: "Danh mục",
+    cell: ({ getValue }) => {
+      const category = getValue<SimpleMaterialCategory>();
+
+      return (
+        <div>
+          <Badge className={getCategoryColorClass(category.color)}>
+            {category.name}
+          </Badge>
+        </div>
+      );
+    },
+    size: 120,
+    minSize: 60,
   },
   {
     id: "warehouses",

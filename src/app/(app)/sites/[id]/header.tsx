@@ -7,7 +7,6 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,34 +23,35 @@ interface SiteDetailHeaderProps {
   name: string;
   code: string;
   status: Site["status"];
-  siteId: number;
-  warehouseId: number | null;
   warehouseCode: string | null;
   isActive: boolean;
   onEdit: () => void;
   onEditRequirements: () => void;
   onSettle: () => void;
+  onCreateInbound: () => void;
+  onCreateOutbound: () => void;
+  onCreateStocktake: () => void;
 }
 
 export function SiteDetailHeader({
   name,
   code,
   status,
-  siteId,
-  warehouseId,
   warehouseCode,
   isActive,
   onEdit,
   onEditRequirements,
   onSettle,
+  onCreateInbound,
+  onCreateOutbound,
+  onCreateStocktake,
 }: SiteDetailHeaderProps) {
-  const router = useRouter();
   const { data: profile } = useGetUserProfile();
   const role = profile?.role;
   // Backend: sites create/update/settle = IsAdmin; phiếu (nhập/xuất/kiểm kê) = IsAdminOrStorekeeper
   const isAdmin = role === "admin";
   const canCreateNote = isAdmin || role === "storekeeper";
-  const canCreateNow = canCreateNote && isActive && warehouseId !== null;
+  const canCreateNow = canCreateNote && isActive && warehouseCode !== null;
 
   return (
     <header
@@ -110,27 +110,19 @@ export function SiteDetailHeader({
             <DropdownMenuContent align="end">
               <DropdownMenuItem
                 disabled={!canCreateNow}
-                onClick={() =>
-                  router.push(`/notes/inbound?warehouseId=${warehouseId}`)
-                }
+                onClick={onCreateInbound}
               >
                 Phiếu nhập
               </DropdownMenuItem>
               <DropdownMenuItem
                 disabled={!canCreateNow}
-                onClick={() =>
-                  router.push(
-                    `/notes/outbound?siteId=${siteId}&warehouseId=${warehouseId}`,
-                  )
-                }
+                onClick={onCreateOutbound}
               >
                 Phiếu xuất
               </DropdownMenuItem>
               <DropdownMenuItem
                 disabled={!canCreateNow}
-                onClick={() =>
-                  router.push(`/notes/stocktake?warehouseId=${warehouseId}`)
-                }
+                onClick={onCreateStocktake}
               >
                 Phiếu kiểm kê
               </DropdownMenuItem>

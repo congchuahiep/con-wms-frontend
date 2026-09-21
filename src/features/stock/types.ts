@@ -2,6 +2,7 @@ import type { SimpleUser } from "@/features/auth";
 import type { SimpleMaterial } from "@/features/material";
 import type { SimpleUnit } from "@/features/unit";
 import type { SimpleWarehouse } from "@/features/warehouse";
+import type { SimpleMaterialCategory } from "../material-category";
 
 /**
  * Loại dòng sổ kho — khớp `MovementType` TextChoices của backend.
@@ -20,7 +21,7 @@ export type MovementType =
  * Decimal trả về dạng string, không parse sang number.
  */
 export type StockBalance = {
-  material: SimpleMaterial;
+  material: SimpleMaterial & { category: SimpleMaterialCategory };
   unit: SimpleUnit;
   warehouse: SimpleWarehouse;
   quantity: string;
