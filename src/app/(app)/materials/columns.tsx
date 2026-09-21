@@ -75,7 +75,7 @@ export function createColumns({
           {getValue<string>()}
         </span>
       ),
-      minSize: 120,
+      size: 320,
     },
     {
       id: "actions",

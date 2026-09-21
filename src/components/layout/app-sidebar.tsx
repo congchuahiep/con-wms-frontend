@@ -4,7 +4,6 @@ import {
   Archive01Icon,
   Book01Icon,
   Building02Icon,
-  Chart01Icon,
   ConstructionIcon,
   HomeIcon,
   Invoice01Icon,
@@ -52,7 +51,6 @@ const navItems = [
       { title: "Sổ kho", url: "/stock-movements", icon: Book01Icon },
       { title: "Phiếu chứng từ", url: "/notes", icon: Invoice01Icon },
       { title: "Công trường", url: "/sites", icon: ConstructionIcon },
-      { title: "Báo cáo", url: "/reports", icon: Chart01Icon },
     ],
   },
   {
@@ -71,8 +69,6 @@ export function AppSidebar() {
   const router = useRouter();
   const { data: profile } = useGetUserProfile();
   const logout = useLogout();
-
-  const isWarehouseActive = pathname.startsWith("/warehouses");
 
   const handleLogout = () => {
     router.push("/login");
